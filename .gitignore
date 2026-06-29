@@ -1,0 +1,60 @@
+## .NET
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.nupkg
+*.vsix
+*.snk
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+## Visual Studio
+.vs/
+*.csproj.user
+*.csproj.DotSettings
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## JetBrains Rider
+.idea/
+*.sln.iml
+
+## NuGet
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+packages/
+
+## Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+## Publish output
+publish/
+publish-trimmed/
+
+## OS files
+Thumbs.db
+*.DS_Store
+Desktop.ini
+
+## dotnet tooling
+*.nupkg
+*.cache
+*.tmp

@@ -1,0 +1,218 @@
+﻿<Window x:Class="Chigen.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Chigen.App.ViewModels"
+        xmlns:core="clr-namespace:Chigen.Core.Models;assembly=Chigen.Core"
+        mc:Ignorable="d"
+        Title="Chigen"
+        Height="750" Width="1000"
+        MinHeight="600" MinWidth="800"
+        WindowStartupLocation="CenterScreen"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        Loaded="Window_Loaded">
+    <Window.InputBindings>
+        <KeyBinding Key="G" Modifiers="Control" Command="{Binding GenerateDocxCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding ExportPdfCommand}"/>
+        <KeyBinding Key="R" Command="{Binding ResetCommand}"/>
+        <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoCommand}"/>
+    </Window.InputBindings>
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <Style TargetType="Button" x:Key="ActionButton">
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="MinWidth" Value="120"/>
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="2,0"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#1A3C6E" Padding="10">
+            <StackPanel>
+                <TextBlock Text="Chigen — Cell Differential Counter" FontSize="20" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#CCCCCC" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Patient summary bar + Mode selector -->
+        <Border Grid.Row="1" Background="#F5F5F5" Padding="8,6" BorderBrush="#D0D0D0" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="#E8E8E8" Padding="8,4" CornerRadius="4" BorderBrush="#CCC" BorderThickness="1"
+                        Visibility="{Binding HasPatientInfo, Converter={StaticResource BoolToVis}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontWeight="Bold" FontSize="13" VerticalAlignment="Center">Patient:</TextBlock>
+                        <TextBlock Text="{Binding PatientDisplay}" FontSize="13" Margin="6,0,4,0" VerticalAlignment="Center"/>
+                        <Button Content="Edit" FontSize="11" Padding="6,1" Margin="4,0,0,0"
+                                Cursor="Hand" Click="Patient_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <TextBlock FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Margin="0,0,6,0">Mode:</TextBlock>
+                    <RadioButton Content="Peripheral Blood" IsChecked="{Binding IsPbMode, Mode=OneWay}" GroupName="Mode"
+                                 Margin="2" FontWeight="Bold" FontSize="13"
+                                 Checked="PbMode_Checked"/>
+                    <RadioButton Content="Bone Marrow" IsChecked="{Binding IsBmMode, Mode=OneWay}" GroupName="Mode"
+                                 Margin="2" FontWeight="Bold" FontSize="13"
+                                 Checked="BmMode_Checked"/>
+                </StackPanel>
+
+                <TextBlock Grid.Column="3" Text="{Binding SpecimenDate}" FontSize="11" Foreground="#888"
+                           VerticalAlignment="Center" Margin="10,0,4,0"/>
+            </Grid>
+        </Border>
+
+        <!-- Cell Differential Table -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Entries}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Background="#1A3C6E" CornerRadius="3" Width="32" Height="28" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding CellType.Key}" 
+                                               Foreground="White" FontWeight="Bold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               FontSize="14"/>
+                                </Border>
+
+                                <TextBlock Grid.Column="1" Text="{Binding CellType.Name}" 
+                                           FontSize="14" VerticalAlignment="Center" Margin="8,0"/>
+
+                                <TextBlock Grid.Column="2" Text="{Binding Count}" 
+                                           FontSize="16" FontWeight="Bold" 
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Column="3" Text="{Binding Percentage, StringFormat={}{0:F1}%}" 
+                                           FontSize="14" 
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Column="4" Text="{Binding CellType.ReferenceRange}" 
+                                           FontSize="12" Foreground="#666" 
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="−" Width="24" Height="24" FontSize="14" FontWeight="Bold"
+                                            Padding="0" Margin="1"
+                                            Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.DecrementCommand}"
+                                            CommandParameter="{Binding CellType.Id}"/>
+                                    <Button Content="+" Width="24" Height="24" FontSize="14" FontWeight="Bold"
+                                            Padding="0" Margin="1"
+                                            Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.IncrementCommand}"
+                                            CommandParameter="{Binding CellType.Id}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Total bar -->
+        <Border Grid.Row="3" Background="#1A3C6E" Padding="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">–</TextBlock>
+                <TextBlock Grid.Column="1" FontWeight="Bold" Foreground="White" FontSize="14" VerticalAlignment="Center">TOTAL</TextBlock>
+                <TextBlock Grid.Column="2" Text="{Binding TotalCount}" FontWeight="Bold" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="3" Text="100%" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Action buttons -->
+        <Border Grid.Row="4" Background="#F0F0F0" Padding="10" BorderBrush="#D0D0D0" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="Generate DOCX" Style="{StaticResource ActionButton}"
+                        IsEnabled="{Binding CanExport}"
+                        Click="GenerateDocx_Click"/>
+                <Button Grid.Column="1" Content="Export PDF" Style="{StaticResource ActionButton}"
+                        IsEnabled="{Binding CanExport}"
+                        Click="ExportPdf_Click"/>
+                <Button Grid.Column="2" Content="Undo (Del)" Style="{StaticResource ActionButton}"
+                        IsEnabled="{Binding CanUndo}"
+                        Click="Undo_Click"/>
+                <Button Grid.Column="3" Content="Reset" Style="{StaticResource ActionButton}"
+                        Click="Reset_Click"/>
+                <Button Grid.Column="4" Content="Conclusion" Style="{StaticResource ActionButton}"
+                        MinWidth="80"
+                        Click="Conclusion_Click"/>
+                <Button Grid.Column="5" Content="Recommendations" Style="{StaticResource ActionButton}"
+                        MinWidth="80"
+                        Click="Recommendations_Click"/>
+                <Button Grid.Column="6" Content="Hotkeys" Style="{StaticResource ActionButton}"
+                        MinWidth="80"
+                        Click="Hotkeys_Click"/>
+                <Button Grid.Column="7" Content="Settings" Style="{StaticResource ActionButton}"
+                        MinWidth="80"
+                        Click="Settings_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- Status bar -->
+        <StatusBar Grid.Row="5" Background="#1A3C6E">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusText}" Foreground="White" FontSize="12"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Foreground="#AAAAAA" FontSize="11">
+                    <Run Text="Keys: "/>
+                    <Run Text="0-9,A-Z=Count  |  "/>
+                    <Run Text="Del=Undo  |  "/>
+                    <Run Text="R=Reset  |  "/>
+                    <Run Text="Ctrl+G=DOCX  |  "/>
+                    <Run Text="Ctrl+P=PDF"/>
+                </TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
