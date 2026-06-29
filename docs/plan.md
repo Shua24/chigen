@@ -98,6 +98,7 @@ All mappings are stored in JSON and fully configurable.
 | `Ctrl+G` | Generate DOCX |
 | `Ctrl+P` | Export PDF |
 | `Ctrl+Z` | Undo |
+| `Ctrl+Q` | Exit application |
 | `Tab` / `Shift+Tab` | Navigate cell groups (BM mode) |
 
 ### Features
@@ -136,9 +137,10 @@ All mappings are stored in JSON and fully configurable.
 │  –  │ TOTAL              │ 100   │ 100% │          │     │
 ├─────────────────────────────────────────────────────────┤
 │ [Generate DOCX] [Export PDF] [Undo] [Reset]             │
-│ [Conclusion] [Recommendations] [Hotkeys] [Settings]     │
+│ [Conclusion] [Recommendations] [Hotkeys] [Settings] [Exit] │
 ├─────────────────────────────────────────────────────────┤
-│ Ready  |  Keys: 0-9,A-Z=Count | Del=Undo | R=Reset ... │
+│ Ready  |  Keys: 0-9,A-Z=Count | F5,F6=Select |         │
+│         Del=Undo | Ctrl+Q=Exit                          │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -164,13 +166,14 @@ The patient badge (green highlight) is hidden via `Visibility` binding when all 
 
 ### Document Sections
 
-1. **Header** — Letterhead (institution name, logo, address, contact) — toggled by `ShowLetterhead`
-2. **Patient Info** — Dynamic table with per-field toggles: Patient ID, Name, DOB, Sex, Diagnosis, Address, Physician, Ward, Payment Method. Each field is independently toggleable via Settings. Disabled fields are omitted; rows with both sides disabled are skipped entirely.
-3. **Specimen Info** — Type (PB/BM), collection date, received date
-4. **Differential Table** — Formatted table with key, cell type, count, percentage, reference range (range column toggleable via `ShowReferenceRanges`)
-5. **Conclusion** — Free-text interpretation section (toggleable via `ShowConclusion`)
-6. **Recommendations** — Free-text section (only shown when non-empty)
-7. **Footer** — Generation date, footer text, signature line (toggleable via `ShowFooter`)
+1. **Header/Letterhead** — Institution name, department, address, optional logo. Thick 3pt bottom border ("letterhead rule") painted directly on the address line. Toggled by `ShowLetterhead`.
+2. **Report Title** — "HEMATOLOGY LABORATORY REPORT" as standalone heading (not part of letterhead).
+3. **Patient Info** — Dynamic table with per-field toggles: Patient ID, Name, DOB, Sex, Diagnosis, Address, Physician, Ward, Payment Method. Each field is independently toggleable via Settings. Disabled fields are omitted; rows with both sides disabled are skipped entirely.
+4. **Specimen Info** — Type (PB/BM), collection date, received date
+5. **Differential Table** — Formatted table with key, cell type, count, percentage, reference range (range column toggleable via `ShowReferenceRanges`). Data cells use 8pt font.
+6. **Conclusion** — Free-text interpretation section (toggleable via `ShowConclusion`), 9pt heading / 8pt body.
+7. **Recommendations** — Free-text section (only shown when non-empty), same font as Conclusion.
+8. **Footer** — Generation date, footer text, signature line (toggleable via `ShowFooter`), all at 8pt.
 
 ### Template System
 
@@ -202,10 +205,15 @@ The patient badge (green highlight) is hidden via `Visibility` binding when all 
 User clicks [Generate DOCX] or [Export PDF]
        │
        ▼
-ExportService.ReadCounterData()
+Validate: ShowLetterhead && empty LogoPath?
        │
-       ▼
-DocxGenerator.Create(template, data) ──► .docx file on disk
+       ├── Yes ──► Show error: "The letterhead logo is required.
+       │                    Go to settings to set the logo."
+       │
+       ▼  No
+Load LetterheadConfig + DocumentTemplate via TemplateService
+       │
+       ├── DocxGenerator.Create(...) ──► .docx file on disk
        │                                     │
        │                               [Export PDF clicked?]
        │                                     │
@@ -213,6 +221,9 @@ DocxGenerator.Create(template, data) ──► .docx file on disk
        │                                     │
        │                                     ▼
        │                              PdfConverter.Convert(docxPath)
+       │                              └─ InvokeWordMethod helpers
+       │                                 unwrap TargetInvocationException
+       │                                 → clear "Word.{method} failed:" msg
        │                                     │
        │                                     ▼
        │                               .pdf file on disk
@@ -261,7 +272,7 @@ Load LetterheadConfig + DocumentTemplate via TemplateService
 | Zero total (before any count) | Lock export buttons until count > 0 |
 | Very large differential (200+ cells) | Percentages calc on running total; no upper limit |
 | Missing letterhead config | Ship sensible defaults; prompt on first launch |
-| Image not found (logo) | Silently skip logo in document; log warning |
+| Logo not configured | Throws `InvalidOperationException`: "The letterhead logo is required. Go to settings to set the logo." when `ShowLetterhead` is enabled but `LogoPath` is empty |
 | Template JSON corrupt | Validate on load; fall back to embedded default; notify user |
 | Multiple instances | Single-instance app (mutex) to avoid file conflicts |
 | Undo after export | Undo stack preserved; re-export uses latest state |

@@ -62,6 +62,10 @@ public partial class MainWindow : Window
                     e.Handled = true;
                     _viewModel.HandleUndo();
                     return;
+                case Key.Q:
+                    e.Handled = true;
+                    Close();
+                    return;
             }
             return;
         }
@@ -204,5 +208,10 @@ public partial class MainWindow : Window
         settingsWindow.Owner = this;
         settingsWindow.ShowDialog();
         _viewModel.RefreshTemplateSettings();
+    }
+
+    private void Exit_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
     }
 }

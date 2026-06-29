@@ -250,14 +250,20 @@ Builds a DOCX file using OpenXML SDK.
 | Method                                                        | Description                  |
 |---------------------------------------------------------------|------------------------------|
 | `Create(string outputPath, CounterState, PatientInfo, SpecimenInfo)` | Creates the DOCX file |
+| `AddLetterhead(CounterState.PatientInfo, LetterheadConfig?)` | Adds institution name, department, address, logo, and thick bottom border (letterhead rule) |
+| `AddReportTitle()` | Adds "HEMATOLOGY LABORATORY REPORT" as standalone heading after letterhead |
+| `AddPatientInfoTable(CounterState.PatientInfo, DocumentTemplate)` | Adds dynamic patient info rows |
+| `AddDifferentialTable(CounterState)` | Adds the main cell count table with 8pt data cells |
+| `AddFooter(CounterState.PatientInfo)` | Adds timestamp, footer text, signature line at 8pt |
 
 **Document sections (controlled by `DocumentTemplate`):**
-1. **Letterhead** — Institution name, department, address, optional logo image. Logo can be placed centered above text (`Top`) or left-aligned beside text (`Side`), controlled by `LetterheadConfig.LogoPlacement`.
-2. **Patient Info** — Dynamic table where each field can be individually toggled via settings (`ShowPatientId`, `ShowPatientName`, `ShowPatientDob`, `ShowPatientSex`, `ShowPatientDiagnosis`, `ShowPatientAddress`, `ShowPatientPhysician`, `ShowPatientWard`, `ShowPatientPaymentMethod`). Fields are paired in rows (Patient ID/Date of Birth, Patient Name/Physician, Sex/Ward, Diagnosis/Payment Method, Address/Collection Date). Disabled fields are omitted from the table; when both paired fields are disabled, the row is skipped entirely.
-3. **Differential Count Table** — Header row (Cell Type, Count, %, Ref Range), data rows sorted by key, TOTAL row
-4. **Conclusion** — Free-text interpretation section
-5. **Recommendations** — Free-text recommendations section (rendered below Conclusion; only shown when non-empty)
-6. **Footer** — Generation date, footer text, signature line
+1. **Letterhead** — Institution name, department, address, optional logo image. Logo can be placed centered above text (`Top`) or left-aligned beside text (`Side`), controlled by `LetterheadConfig.LogoPlacement`. A thick 3pt bottom border ("letterhead rule") is painted directly on the last letterhead element (address line) using the border painter approach.
+2. **Report Title** — "HEMATOLOGY LABORATORY REPORT" rendered as a standalone heading, separate from the letterhead. Implemented as `AddReportTitle` (DOCX) / `DrawReportTitle` (PDF).
+3. **Patient Info** — Dynamic table where each field can be individually toggled via settings (`ShowPatientId`, `ShowPatientName`, `ShowPatientDob`, `ShowPatientSex`, `ShowPatientDiagnosis`, `ShowPatientAddress`, `ShowPatientPhysician`, `ShowPatientWard`, `ShowPatientPaymentMethod`). Fields are paired in rows (Patient ID/Date of Birth, Patient Name/Physician, Sex/Ward, Diagnosis/Payment Method, Address/Collection Date). Disabled fields are omitted from the table; when both paired fields are disabled, the row is skipped entirely.
+4. **Differential Count Table** — Header row (Cell Type, Count, %, Ref Range), data rows sorted by key, TOTAL row. Table data cells use 8pt font.
+5. **Conclusion** — Free-text interpretation section
+6. **Recommendations** — Free-text recommendations section (rendered below Conclusion; only shown when non-empty)
+7. **Footer** — Generation date, footer text, signature line. All elements use 8pt font.
 
 **Sort key logic:** Numeric keys (0-9) sort before alpha keys (A-Z). `"1"` → `"01"`, `"A"` → `"1A"`.
 
@@ -267,8 +273,13 @@ Generates PDF directly using PdfSharp (no Word dependency). Mirrors the DOCX lay
 | Method                                                        | Description                  |
 |---------------------------------------------------------------|------------------------------|
 | `Create(string outputPath, CounterState, PatientInfo, SpecimenInfo)` | Creates the PDF file |
+| `DrawLetterhead(CounterState.PatientInfo, LetterheadConfig?)` | Draws institution name, department, address, logo, and thick bottom border (letterhead rule) |
+| `DrawReportTitle()` | Draws "HEMATOLOGY LABORATORY REPORT" as standalone heading after letterhead |
+| `DrawPatientInfoTable(CounterState.PatientInfo, DocumentTemplate)` | Draws dynamic patient info rows |
+| `DrawDifferentialTable(CounterState)` | Draws the main cell count table with 8pt data cells |
+| `DrawFooter(CounterState.PatientInfo)` | Draws timestamp, footer text, signature line at 8pt |
 
-Same document structure as `DocxGenerator` (Letterhead, Patient Info, Differential Table, Conclusion, Recommendations, Footer) but uses PdfSharp drawing primitives. Filters out zero-count entries from the differential table.
+Same document structure as `DocxGenerator` (Letterhead, Report Title, Patient Info, Differential Table, Conclusion, Recommendations, Footer) but uses PdfSharp drawing primitives. Filters out zero-count entries from the differential table.
 
 #### `PdfConverter`
 Facilitates PDF conversion via Word Interop or fallback to `DirectPdfGenerator`.
@@ -277,6 +288,8 @@ Facilitates PDF conversion via Word Interop or fallback to `DirectPdfGenerator`.
 |---------------------------------------------------------------------------------|------------------------------------|
 | `CheckAvailability()`                                                           | Detects if Word is installed       |
 | `Convert(string outputPdfPath, CounterState, PatientInfo, SpecimenInfo, LetterheadConfig, DocumentTemplate, PdfConversionMethod)` | Converts to PDF using specified method |
+| `InvokeWordMethod(object target, string methodName, params object?[] args)`     | Calls a Word COM method via reflection; unwraps `TargetInvocationException` → `InvalidOperationException` with `"Word.{methodName} failed: {inner}"` |
+| `InvokeGetProperty(object target, string propertyName)`                         | Gets a Word COM property via reflection; same error unwrapping |
 
 ---
 
@@ -293,12 +306,19 @@ Application entry point. Enforces single-instance via named mutex.
 Main application window. Handles keyboard input for cell counting and triggers document generation.
 The patient summary badge (column 0 of the info bar) is bound to `HasPatientInfo` via `BooleanToVisibilityConverter` — it hides when all patient fields are disabled in settings.
 
+**Action buttons** are defined in a 9-column Grid row with `Column="0"` through `Column="8"`. Column 8 is the **Exit** button (`Background="#D9534F"`) which calls `Close()` via `Exit_Click` handler. **Ctrl+Q** is bound in `Window_PreviewKeyDown` and shown in the status bar as `Ctrl+Q=Exit`.
+
+**Window dimensions:** Default `Width="1100" Height="750"`, `MinWidth="960"`.
+
 ### Namespace: `Chigen.App.ViewModels`
 
 #### `CounterViewModel`
 Main view model connecting the UI to `CounterService`. Exposes `ObservableCollection<CellCountEntry>`, patient info properties, and relay commands for all user actions.
 
-#### `CounterViewModel`
+**Logo validation**: Both `HandleGenerateDocx()` and `HandleExportPdf()` check that `LogoPath` is non-empty when `ShowLetterhead` is enabled. If empty, they throw `InvalidOperationException("The letterhead logo is required. Go to settings to set the logo.")`.
+
+**Error unwrapping**: Both catch handlers unwrap `TargetInvocationException` to show the inner exception's message, giving actionable error text instead of the generic "Exception has been thrown by the target of an invocation".
+
 | Member                  | Type   | Description                                      |
 |-------------------------|--------|--------------------------------------------------|
 | `HasPatientInfo`        | `bool` | Whether patient info section is enabled; hides the patient summary bar in main window when `false` |
@@ -428,5 +448,9 @@ All 118 tests should pass.
 - **Single-Instance**: Named mutex prevents multiple app instances
 - **JSON Config**: All persistence via JSON files in `%LOCALAPPDATA%\Chigen\`
 - **PDF Fallback**: Detects Word at startup; falls back to PdfSharp if Word unavailable
-- **Keyboard Handling**: WPF `PreviewKeyDown` event captures numeric (0-9) and alpha (A-Z) keys for counting
+- **Keyboard Handling**: WPF `PreviewKeyDown` event captures numeric (0-9) and alpha (A-Z) keys for counting, plus Ctrl+Q for Exit
+- **Error unwrapping**: PDF export via Word Interop uses `InvokeWordMethod`/`InvokeGetProperty` helpers that unwrap `TargetInvocationException` into `InvalidOperationException` with a `"Word.{method} failed:"` prefix, so the real COM error surfaces instead of the generic reflection wrapper. Both DOCX and PDF catch handlers in `CounterViewModel` also unwrap `TargetInvocationException` to show the inner exception.
+- **Single Line Spacing**: DOCX documents use `DocDefaults(ParagraphPropertiesDefault(SpacingBetweenLines Line="240" LineRule=Auto Before=0 After=0))` for compact layout
+- **Logo validation**: When `ShowLetterhead` is enabled, `LogoPath` must be non-empty; export throws `"The letterhead logo is required. Go to settings to set the logo."` otherwise
+- **Font Sizes**: Letterhead uses 12pt/10pt/9pt hierarchy; table data cells use 8pt; footer uses 8pt — all sized to fit the report on a single page
 - **Mode Switching**: PB mode (10 cell types) vs BM mode (15 cell types) with separate hotkey mappings

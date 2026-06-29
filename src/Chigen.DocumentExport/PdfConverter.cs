@@ -23,7 +23,7 @@ namespace Chigen.DocumentExport
                 var word = Activator.CreateInstance(type);
                 if (word == null) return PdfConversionMethod.DirectPdfGenerator;
 
-                word.GetType().InvokeMember("Quit", System.Reflection.BindingFlags.InvokeMethod, null, word, null);
+                InvokeWordMethod(word, "Quit");
                 return PdfConversionMethod.WordInterop;
             }
             catch
@@ -66,21 +66,21 @@ namespace Chigen.DocumentExport
 
                     try
                     {
-                        word.GetType().InvokeMember("Visible", System.Reflection.BindingFlags.SetProperty, null, word, ["false"]);
-                        word.GetType().InvokeMember("DisplayAlerts", System.Reflection.BindingFlags.SetProperty, null, word, [0]);
+                        InvokeWordMethod(word, "Visible", false);
+                        InvokeWordMethod(word, "DisplayAlerts", 0);
 
-                        var doc = word.GetType().InvokeMember("Documents", System.Reflection.BindingFlags.GetProperty, null, word, null);
+                        var doc = InvokeGetProperty(word, "Documents");
                         if (doc == null) throw new InvalidOperationException("Could not access Word Documents collection.");
 
-                        var openedDoc = doc.GetType().InvokeMember("Open", System.Reflection.BindingFlags.InvokeMethod, null, doc, [tempDocx]);
+                        var openedDoc = InvokeWordMethod(doc, "Open", tempDocx);
                         if (openedDoc == null) throw new InvalidOperationException("Could not open document in Word.");
 
-                        openedDoc.GetType().InvokeMember("SaveAs2", System.Reflection.BindingFlags.InvokeMethod, null, openedDoc, [outputPdfPath, 17]);
-                        openedDoc.GetType().InvokeMember("Close", System.Reflection.BindingFlags.InvokeMethod, null, openedDoc, null);
+                        InvokeWordMethod(openedDoc, "SaveAs2", outputPdfPath, 17);
+                        InvokeWordMethod(openedDoc, "Close");
                     }
                     finally
                     {
-                        word.GetType().InvokeMember("Quit", System.Reflection.BindingFlags.InvokeMethod, null, word, null);
+                        try { InvokeWordMethod(word, "Quit"); } catch { }
                     }
 
                     return outputPdfPath;
@@ -94,6 +94,33 @@ namespace Chigen.DocumentExport
             {
                 var pdfGen = new DirectPdfGenerator(letterhead, template);
                 return pdfGen.Create(outputPdfPath, counterState, patient, specimen);
+            }
+        }
+        private static object? InvokeWordMethod(object target, string methodName, params object?[] args)
+        {
+            try
+            {
+                var flags = System.Reflection.BindingFlags.InvokeMethod;
+                return target.GetType().InvokeMember(methodName, flags, null, target, args);
+            }
+            catch (System.Reflection.TargetInvocationException ex) when (ex.InnerException != null)
+            {
+                throw new InvalidOperationException(
+                    $"Word.{methodName} failed: {ex.InnerException.Message}", ex.InnerException);
+            }
+        }
+
+        private static object? InvokeGetProperty(object target, string propertyName)
+        {
+            try
+            {
+                var flags = System.Reflection.BindingFlags.GetProperty;
+                return target.GetType().InvokeMember(propertyName, flags, null, target, null);
+            }
+            catch (System.Reflection.TargetInvocationException ex) when (ex.InnerException != null)
+            {
+                throw new InvalidOperationException(
+                    $"Word.{propertyName} failed: {ex.InnerException.Message}", ex.InnerException);
             }
         }
     }

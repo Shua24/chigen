@@ -7,8 +7,8 @@
         xmlns:core="clr-namespace:Chigen.Core.Models;assembly=Chigen.Core"
         mc:Ignorable="d"
         Title="Chigen"
-        Height="750" Width="1000"
-        MinHeight="600" MinWidth="800"
+        Height="750" Width="1100"
+        MinHeight="600" MinWidth="960"
         WindowStartupLocation="CenterScreen"
         PreviewKeyDown="Window_PreviewKeyDown"
         Loaded="Window_Loaded">
@@ -17,6 +17,7 @@
         <KeyBinding Key="P" Modifiers="Control" Command="{Binding ExportPdfCommand}"/>
         <KeyBinding Key="R" Command="{Binding ResetCommand}"/>
         <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoCommand}"/>
+
     </Window.InputBindings>
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -195,6 +196,9 @@
                 <Button Grid.Column="7" Content="Settings" Style="{StaticResource ActionButton}"
                         MinWidth="80"
                         Click="Settings_Click"/>
+                <Button Grid.Column="8" Content="Exit" Style="{StaticResource ActionButton}"
+                        MinWidth="80" Background="#D9534F" Foreground="White"
+                        Click="Exit_Click"/>
             </Grid>
         </Border>
 

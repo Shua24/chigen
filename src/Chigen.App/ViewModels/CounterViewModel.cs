@@ -254,6 +254,8 @@ namespace Chigen.App.ViewModels
                 {
                     var letterhead = TemplateService.LoadLetterhead();
                     var template = TemplateService.LoadTemplate();
+                    if (template.ShowLetterhead && string.IsNullOrEmpty(letterhead.LogoPath))
+                        throw new InvalidOperationException("If you toggled the letterhead on, the letterhead logo is required. Go to settings to set the logo.");
                     var generator = new DocxGenerator(letterhead, template);
                     var specimen = new SpecimenInfo
                     {
@@ -280,8 +282,11 @@ namespace Chigen.App.ViewModels
             }
             catch (Exception ex)
             {
-                StatusText = $"Error: {ex.Message}";
-                MessageBox.Show($"Failed to generate document:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                var msg = ex is System.Reflection.TargetInvocationException && ex.InnerException != null
+                    ? ex.InnerException.Message
+                    : ex.Message;
+                StatusText = $"Error: {msg}";
+                MessageBox.Show($"Failed to generate document:\n{msg}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -300,6 +305,8 @@ namespace Chigen.App.ViewModels
                 {
                     var letterhead = TemplateService.LoadLetterhead();
                     var template = TemplateService.LoadTemplate();
+                    if (template.ShowLetterhead && string.IsNullOrEmpty(letterhead.LogoPath))
+                        throw new InvalidOperationException("If you toggled the letterhead on, the letterhead logo is required. Go to settings to set the logo.");
                     var specimen = new SpecimenInfo
                     {
                         Type = CurrentMode == CounterMode.PeripheralBlood ? "Peripheral Blood" : "Bone Marrow Aspirate"
@@ -328,8 +335,11 @@ namespace Chigen.App.ViewModels
             }
             catch (Exception ex)
             {
-                StatusText = $"Error: {ex.Message}";
-                MessageBox.Show($"Failed to export PDF:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                var msg = ex is System.Reflection.TargetInvocationException && ex.InnerException != null
+                    ? ex.InnerException.Message
+                    : ex.Message;
+                StatusText = $"Error: {msg}";
+                MessageBox.Show($"Failed to export PDF:\n{msg}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

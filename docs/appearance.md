@@ -66,24 +66,27 @@ Each window defines its own font sizes inline. For a global change, add a resour
 ```
 
 ### Document fonts (DOCX / PDF)
-In `DocxGenerator.cs` and `DirectPdfGenerator.cs`, fonts are hardcoded:
+Font sizes are set explicitly across different document sections:
 
-| Generator | Font | Defined at |
+| Section | DOCX | PDF |
 |---|---|---|
-| `DocxGenerator.cs` | Calibri (implicit — Word default) | Font is inherited from Word's Normal style |
-| `DirectPdfGenerator.cs` | Calibri (explicit) | Top of the class as `static readonly XFont` fields |
+| Letterhead institution | 12pt (`FontSize="24"`) | `LetterheadTitleFont` 12pt Bold |
+| Letterhead department | 10pt (`FontSize="20"`) | `LetterheadSubtitleFont` 10pt |
+| Letterhead address | 9pt (`FontSize="18"`) | `SmallFont` 9pt |
+| Report title | default (inherited) | `SubtitleFont` 11pt |
+| Table header | 9pt (`FontSize="18"`, Bold) | `TableHeaderFont` 9pt Bold |
+| Table data cells | 8pt (`FontSize="16"`) | `TableFont` 8pt |
+| Patient info cells | 8pt (`FontSize="16"`) | `TableHeaderFont` 9pt / `TableFont` 8pt |
+| Footer / timestamp | 8pt (`FontSize="16"`) | `TableFont` 8pt |
+| Conclusion / Recommendations | 9pt (`FontSize="18"`) | `TableHeaderFont` 9pt / `TableFont` 8pt |
 
-To change the document font:
+Font family is **Calibri** throughout. To change it, update the `XFont` static fields in `DirectPdfGenerator.cs` or add `RunFonts` to `RunProperties` in `DocxGenerator.cs`:
 
 ```csharp
-// In DirectPdfGenerator.cs — change the static fields
-private static readonly XFont TitleFont = new("Georgia", 16, XFontStyleEx.Bold);
-private static readonly XFont BodyFont = new("Georgia", 10, XFontStyleEx.Regular);
-```
+// In DirectPdfGenerator.cs
+private static readonly XFont LetterheadTitleFont = new("Georgia", 12, XFontStyleEx.Bold);
 
-For DOCX, the document uses Word's default font. To set an explicit font family, add `RunProperties` with a `RunFonts` element:
-
-```csharp
+// In DocxGenerator.cs
 new Run(
     new RunProperties(new RunFonts { Ascii = "Georgia", HighAnsi = "Georgia" }),
     new Text("Hello")
@@ -98,6 +101,17 @@ The logo position in generated documents is controlled by `LetterheadConfig.Logo
 - **Side** (new default): Logo is placed on the left side of the letterhead, with the institution name, department, and address aligned to the right. A borderless table (DOCX) or absolute positioning (PDF) is used to achieve the side-by-side layout.
 
 Set this in the Settings window via the "Logo Placement" dropdown, or directly in `letterhead.json`.
+
+### Letterhead Thick Bottom Border
+
+The letterhead has a **thick** bottom rule (3pt single border) separating it from the document body, meeting official letterhead standards ("letterhead rule"). The border is applied using the **border painter approach**:
+
+- **DOCX**: `ParagraphBorders` with `BottomBorder` (single, 24pt = 3pt) is painted directly on the last letterhead paragraph (the address line). No separate empty border paragraph is added.
+- **PDF**: A horizontal line is drawn with `new XPen(XColors.Black, 3)` at the bottom of the address line rendering.
+
+This approach saves ~2 lines of vertical space compared to using a separate border paragraph, critical for fitting the report on a single page.
+
+---
 
 ### Patient Info Table Layout
 
@@ -193,6 +207,8 @@ The quickest path:
 ## Notes
 
 - WPF uses a **pixel-based layout**. All `Width`, `Height`, `Margin`, `Padding` are in device-independent pixels (1/96 inch).
-- The status bar hint text (`0-9,A-Z=Count | Del=Undo ...`) is plain text in `MainWindow.xaml` — edit it directly if keybindings change.
+- The status bar hint text (`0-9,A-Z=Count | F5,F6=Select | Del=Undo | Ctrl+Q=Exit`) is plain text in `MainWindow.xaml` — edit it directly if keybindings change.
 - The blue key badges in the counter table are `<Border Background="#1A3C6E" CornerRadius="3">`.
 - Row borders in the counter table use `BorderBrush="#E0E0E0" BorderThickness="0,0,0,1"`.
+- The Exit button (8th action button) has `Background="#D9534F"` and is fired via `Click` handler calling `Close()`.
+- Window default size is `Width="1100" Height="750"` with `MinWidth="960"`.
