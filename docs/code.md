@@ -454,3 +454,52 @@ All 118 tests should pass.
 - **Logo validation**: When `ShowLetterhead` is enabled, `LogoPath` must be non-empty; export throws `"The letterhead logo is required. Go to settings to set the logo."` otherwise
 - **Font Sizes**: Letterhead uses 12pt/10pt/9pt hierarchy; table data cells use 8pt; footer uses 8pt — all sized to fit the report on a single page
 - **Mode Switching**: PB mode (10 cell types) vs BM mode (15 cell types) with separate hotkey mappings
+
+---
+
+## Release & Versioning
+
+Artifact versions are driven by the CI workflow (`.github/workflows/dotnet-desktop.yml`) and the installer script (`installer/setup.iss`).
+
+### Where each version is set
+
+| Artifact | Source | Current pattern |
+|---|---|---|
+| **Portable ZIP filename** | Workflow `Create portable ZIP` step | `Chigen-Portable-${{ github.run_number }}.zip` |
+| **Installer filename** | `setup.iss` line 10, overridden by workflow `/DMyAppVersion=` | `Chigen-Setup-1.0.{run_number}.exe` |
+| **Installer internal version** | `setup.iss` line 7, overridden by workflow | `1.0.{run_number}` |
+| **Release tag** | Workflow `tag_name` field | `v{run_number}` |
+| **Release name** | Workflow `name` field | `Chigen v{run_number}` |
+| **App binary version** (FileVersion, ProductVersion) | Not set | Add `<Version>` to `Chigen.App.csproj` |
+
+`${{ github.run_number }}` is GitHub\x27s auto-incrementing counter. It increases by 1 every workflow run.
+
+### How to change the version scheme
+
+**Option A \u2014 Tag-driven (recommended)**
+Set a manual version at the top of the workflow:
+```yaml
+env:
+  APP_VERSION: 1.1.0
+```
+Then use `${{ env.APP_VERSION }}` in filenames, installer args, and tags.
+
+**Option B \u2014 Hybrid (major.minor manual, patch auto)**
+Keep `1.0.{run_number}` but bump the major/minor part in `setup.iss` and the workflow when needed.
+
+**Option C \u2014 Date-based**
+Use a date-derived version like `2026.07.04` passed as a workflow variable.
+
+### Adding version to the app binary
+To embed the version into `Chigen.exe`\x27s file properties:
+```xml
+<!-- src/Chigen.App/Chigen.App.csproj -->
+<PropertyGroup>
+  <Version>1.0.0</Version>
+  <FileVersion>1.0.0</FileVersion>
+</PropertyGroup>
+```
+Then pass from the workflow:
+```bash
+dotnet publish ... -p:Version=1.0.${{ github.run_number }}
+```
