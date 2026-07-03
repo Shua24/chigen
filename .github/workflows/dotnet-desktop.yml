@@ -48,7 +48,8 @@ jobs:
 
     - name: Compile installer
       shell: cmd
-      run: "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\setup.iss /DMyAppVersion=1.0.${{ github.run_number }}
+      run: >-
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\setup.iss /DMyAppVersion=1.0.${{ github.run_number }}
 
     - name: Sign installer (optional)
       shell: powershell
@@ -98,21 +99,21 @@ jobs:
 
             Automated release build for commit ${{ github.sha }}
 
-            ### ⚠️ SmartScreen / Windows Defender Notice
+            ### !! SmartScreen / Windows Defender Notice
 
             The installer is unsigned. Windows may show **"Windows protected your PC"** when you try to run it.
             To bypass:
             1. Click **More info** (blue link) on the SmartScreen dialog
             2. Click **Run anyway**
-            3. If you still get an error after installation, **right-click the downloaded .exe → Properties → check "Unblock" → OK**, then run it again
+            3. If you still get an error after installation, **right-click the downloaded .exe -> Properties -> check "Unblock" -> OK**, then run it again
 
             If the installer fails with **"Windows could not find the file specified"**, Windows Defender may have quarantined extracted files during installation. Try:
             - **Temporarily disable** Windows Defender Real-time Protection before installing, then re-enable after
-            - Or use the **Portable ZIP** version (just extract and run `Chigen.exe` — no installation needed)
+            - Or use the **Portable ZIP** version (just extract and run `Chigen.exe` -- no installation needed)
 
-            ### 📦 Downloads
-            - `Chigen-Setup-*.exe` — Inno Setup installer (requires admin)
-            - `Chigen-Portable-*.zip` — Portable version (extract and run, no admin needed)
+            ### Downloads
+            - `Chigen-Setup-*.exe` -- Inno Setup installer (requires admin)
+            - `Chigen-Portable-*.zip` -- Portable version (extract and run, no admin needed)
           files: |
             Chigen-Setup/*.exe
             Chigen-Setup/*.zip
