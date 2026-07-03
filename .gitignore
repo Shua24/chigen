@@ -58,3 +58,6 @@ Desktop.ini
 *.nupkg
 *.cache
 *.tmp
+
+## Installer output
+installer-output/
