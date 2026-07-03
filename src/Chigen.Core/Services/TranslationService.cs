@@ -45,7 +45,7 @@ namespace Chigen.Core.Services
         private static void LoadEnglish()
         {
             // MainWindow
-            _en["MainTitle"] = "Chigen � Cell Differential Counter";
+            _en["MainTitle"] = "Chigen — Cell Differential Counter";
             _en["PatientLabel"] = "Patient:";
             _en["Edit"] = "Edit";
             _en["Mode"] = "Mode:";
@@ -90,7 +90,7 @@ namespace Chigen.Core.Services
             _en["LetterheadLogoRequired"] = "If you toggled the letterhead on, the letterhead logo is required. Go to settings to set the logo.";
 
             // SettingsWindow
-            _en["SettingsTitle"] = "Settings � Letterhead Configuration";
+            _en["SettingsTitle"] = "Settings — Letterhead Configuration";
             _en["LetterheadConfig"] = "Letterhead Configuration";
             _en["InstitutionName"] = "Institution Name:";
             _en["Department"] = "Department:";
@@ -202,7 +202,7 @@ namespace Chigen.Core.Services
         private static void LoadIndonesian()
         {
             // MainWindow
-            _id["MainTitle"] = "Chigen � Penghitung Diferensial Sel";
+            _id["MainTitle"] = "Chigen — Penghitung Diferensial Sel";
             _id["PatientLabel"] = "Pasien:";
             _id["Edit"] = "Ubah";
             _id["Mode"] = "Mode:";
@@ -247,7 +247,7 @@ namespace Chigen.Core.Services
             _id["LetterheadLogoRequired"] = "Jika kop surat diaktifkan, logo kop surat diperlukan. Buka Pengaturan untuk mengatur logo.";
 
             // SettingsWindow
-            _id["SettingsTitle"] = "Pengaturan � Konfigurasi Kop Surat";
+            _id["SettingsTitle"] = "Pengaturan — Konfigurasi Kop Surat";
             _id["LetterheadConfig"] = "Konfigurasi Kop Surat";
             _id["InstitutionName"] = "Nama Institusi:";
             _id["Department"] = "Departemen:";
