@@ -1,6 +1,6 @@
 # Chigen — Cell Differential Counter & Report Generator
 
-> **Serious Note:** This project is still under development and is **not ready for production use yet**. It is intended for educational purposes only. Please use with caution and always verify critical results.
+> **Critical Note:** This project is still under development and is **not ready for production use yet**. It is intended for educational purposes only. Please use with caution and always verify critical results.
 
 This app is developed with GNU General Public License v2.0 due to the need for more awareness on open source medical software to contribute to the transparancy of sensitive and/or critical data. Contributions to this app in any way, shape, or form is always welcome.
 
@@ -73,6 +73,10 @@ Click **Settings** on the main screen:
 | `Ctrl+P` | Export a PDF report |
 
 Want to change which key maps to which cell? Open **Hotkeys** from the main window and reassign them.
+
+## System Notes you need to know
+
+Before you install this app, the contributor(s) of this project would like to let the users know that this app might be marked by Windows as unsafe to execute. This is because the executable is, and probably will always be unsigned due to the trajectory of the project being fully free both for developers and users alike. Most medical software still runs on windows after all.
 
 ## What you need to run it
 
