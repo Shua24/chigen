@@ -66,8 +66,8 @@ namespace Chigen.DocumentExport
 
                     try
                     {
-                        InvokeWordMethod(word, "Visible", false);
-                        InvokeWordMethod(word, "DisplayAlerts", 0);
+                        word.GetType().InvokeMember("Visible", System.Reflection.BindingFlags.SetProperty, null, word, [false]);
+                        word.GetType().InvokeMember("DisplayAlerts", System.Reflection.BindingFlags.SetProperty, null, word, [0]);
 
                         var doc = InvokeGetProperty(word, "Documents");
                         if (doc == null) throw new InvalidOperationException("Could not access Word Documents collection.");

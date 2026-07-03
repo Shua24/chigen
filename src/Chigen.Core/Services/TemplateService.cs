@@ -13,6 +13,7 @@ namespace Chigen.Core.Services
         private static readonly string TemplatePath = Path.Combine(ConfigFolder, "templates.json");
         private static readonly string CellConfigPath = Path.Combine(ConfigFolder, "cell_config.json");
         private static readonly string HotkeyPath = Path.Combine(ConfigFolder, "hotkeys.json");
+        private static readonly string LanguagePath = Path.Combine(ConfigFolder, "language.json");
 
         static TemplateService()
         {
@@ -79,6 +80,25 @@ namespace Chigen.Core.Services
             templates.Add(template);
 
             File.WriteAllText(TemplatePath, JsonSerializer.Serialize(templates, new JsonSerializerOptions { WriteIndented = true }));
+        }
+
+        public static string LoadLanguage()
+        {
+            if (File.Exists(LanguagePath))
+            {
+                try
+                {
+                    var json = File.ReadAllText(LanguagePath);
+                    return JsonSerializer.Deserialize<string>(json) ?? "en";
+                }
+                catch { }
+            }
+            return "en";
+        }
+
+        public static void SaveLanguage(string lang)
+        {
+            File.WriteAllText(LanguagePath, JsonSerializer.Serialize(lang));
         }
 
         public static List<HotkeyMappingEntry> LoadHotkeyMappings()

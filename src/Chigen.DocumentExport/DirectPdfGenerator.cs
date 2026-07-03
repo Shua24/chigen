@@ -1,6 +1,7 @@
 using PdfSharp.Pdf;
 using PdfSharp.Drawing;
 using Chigen.Core.Models;
+using Chigen.Core.Services;
 
 namespace Chigen.DocumentExport
 {
@@ -28,7 +29,7 @@ namespace Chigen.DocumentExport
         public string Create(string outputPath, CounterState counterState, PatientInfo patient, SpecimenInfo specimen)
         {
             using var doc = new PdfDocument();
-            doc.Info.Title = "Hematology Laboratory Report";
+            doc.Info.Title = TranslationService.GetString("ReportTitle");
             doc.Info.Author = _letterhead.InstitutionName;
 
             var page = doc.AddPage();
@@ -177,7 +178,7 @@ namespace Chigen.DocumentExport
 
         private double DrawReportTitle(XGraphics gfx, double y)
         {
-            gfx.DrawString("HEMATOLOGY LABORATORY REPORT", SubtitleFont, XBrushes.Black,
+            gfx.DrawString(TranslationService.GetString("ReportTitle"), SubtitleFont, XBrushes.Black,
                 new XRect(0, y, gfx.PageSize.Width, 18), XStringFormats.TopCenter);
             y += 18;
             return y;
@@ -197,38 +198,38 @@ namespace Chigen.DocumentExport
             string leftDob = _template.ShowPatientDob ? patient.DateOfBirth : "";
 
             if (_template.ShowPatientId && _template.ShowPatientDob)
-                rows.Add(("Patient ID:", leftId, "Date of Birth:", leftDob));
+                rows.Add((TranslationService.GetString("report_PatientId") + ":", leftId, TranslationService.GetString("report_DateOfBirth") + ":", leftDob));
             else if (_template.ShowPatientId)
-                rows.Add(("Patient ID:", leftId, "", ""));
+                rows.Add((TranslationService.GetString("report_PatientId") + ":", leftId, "", ""));
             else if (_template.ShowPatientDob)
-                rows.Add(("Date of Birth:", leftDob, "", ""));
+                rows.Add((TranslationService.GetString("report_DateOfBirth") + ":", leftDob, "", ""));
 
             if (_template.ShowPatientName || _template.ShowPatientPhysician)
-                rows.Add(("Patient Name:", _template.ShowPatientName ? patient.Name : "", "Physician:", _template.ShowPatientPhysician ? patient.Physician : ""));
+                rows.Add((TranslationService.GetString("report_PatientName") + ":", _template.ShowPatientName ? patient.Name : "", TranslationService.GetString("report_Physician") + ":", _template.ShowPatientPhysician ? patient.Physician : ""));
             else if (_template.ShowPatientName)
-                rows.Add(("Patient Name:", patient.Name, "", ""));
+                rows.Add((TranslationService.GetString("report_PatientName") + ":", patient.Name, "", ""));
             else if (_template.ShowPatientPhysician)
-                rows.Add(("Physician:", patient.Physician, "", ""));
+                rows.Add((TranslationService.GetString("report_Physician") + ":", patient.Physician, "", ""));
 
             if (_template.ShowPatientSex || _template.ShowPatientWard)
-                rows.Add(("Sex:", _template.ShowPatientSex ? patient.Sex : "", "Ward:", _template.ShowPatientWard ? patient.Ward : ""));
+                rows.Add((TranslationService.GetString("report_Sex") + ":", _template.ShowPatientSex ? patient.Sex : "", TranslationService.GetString("report_Ward") + ":", _template.ShowPatientWard ? patient.Ward : ""));
             else if (_template.ShowPatientSex)
-                rows.Add(("Sex:", patient.Sex, "", ""));
+                rows.Add((TranslationService.GetString("report_Sex") + ":", patient.Sex, "", ""));
             else if (_template.ShowPatientWard)
-                rows.Add(("Ward:", patient.Ward, "", ""));
+                rows.Add((TranslationService.GetString("report_Ward") + ":", patient.Ward, "", ""));
 
             if (_template.ShowPatientDiagnosis || _template.ShowPatientPaymentMethod)
-                rows.Add(("Diagnosis:", _template.ShowPatientDiagnosis ? patient.Diagnosis : "", "Payment Method:", _template.ShowPatientPaymentMethod ? patient.PaymentMethod : ""));
+                rows.Add((TranslationService.GetString("report_Diagnosis") + ":", _template.ShowPatientDiagnosis ? patient.Diagnosis : "", TranslationService.GetString("report_PaymentMethod") + ":", _template.ShowPatientPaymentMethod ? patient.PaymentMethod : ""));
             else if (_template.ShowPatientDiagnosis)
-                rows.Add(("Diagnosis:", patient.Diagnosis, "", ""));
+                rows.Add((TranslationService.GetString("report_Diagnosis") + ":", patient.Diagnosis, "", ""));
             else if (_template.ShowPatientPaymentMethod)
-                rows.Add(("Payment Method:", patient.PaymentMethod, "", ""));
+                rows.Add((TranslationService.GetString("report_PaymentMethod") + ":", patient.PaymentMethod, "", ""));
 
             if (_template.ShowPatientAddress)
-                rows.Add(("Address:", patient.Address, "Collection Date:", specimen.CollectionDate));
+                rows.Add((TranslationService.GetString("report_Address") + ":", patient.Address, TranslationService.GetString("report_CollectionDate") + ":", specimen.CollectionDate));
 
-            rows.Add(("", "", "Specimen:", specimen.Type));
-            rows.Add(("", "", "Received:", specimen.ReceivedDate));
+            rows.Add(("", "", TranslationService.GetString("report_Specimen") + ":", specimen.Type));
+            rows.Add(("", "", TranslationService.GetString("report_Received") + ":", specimen.ReceivedDate));
 
             int rowCount = rows.Count;
             gfx.DrawRectangle(XPens.Black, XBrushes.White, left, y, tableW, rowH * rowCount);
@@ -268,12 +269,12 @@ namespace Chigen.DocumentExport
             if (_template.ShowReferenceRanges)
             {
                 colWidths = [tableW * 0.40, tableW * 0.18, tableW * 0.18, tableW * 0.24];
-                headers = ["Cell Type", "Count", "%", "Ref Range"];
+                headers = [TranslationService.GetString("ColCellType"), TranslationService.GetString("ColCount"), TranslationService.GetString("ColPercent"), TranslationService.GetString("ColRefRange")];
             }
             else
             {
                 colWidths = [tableW * 0.50, tableW * 0.25, tableW * 0.25];
-                headers = ["Cell Type", "Count", "%"];
+                headers = [TranslationService.GetString("ColCellType"), TranslationService.GetString("ColCount"), TranslationService.GetString("ColPercent")];
             }
 
             double[] colX = new double[colWidths.Length];
@@ -316,7 +317,7 @@ namespace Chigen.DocumentExport
             }
 
             gfx.DrawRectangle(new XPen(XColors.Black, 2), XBrushes.LightSteelBlue, tableLeft, y, tableW, rowH);
-            gfx.DrawString("TOTAL", TableHeaderFont, XBrushes.Black,
+            gfx.DrawString(TranslationService.GetString("Total"), TableHeaderFont, XBrushes.Black,
                 new XRect(colX[0] + 4, y, colWidths[0] - 4, rowH), XStringFormats.CenterLeft);
             gfx.DrawString(counterState.Total.ToString(), TableFont, XBrushes.Black,
                 new XRect(colX[1], y, colWidths[1], rowH), XStringFormats.Center);
@@ -332,7 +333,7 @@ namespace Chigen.DocumentExport
             if (!_template.ShowConclusion) return y;
 
             y += 2;
-            gfx.DrawString("Conclusion / Interpretation:", TableHeaderFont, XBrushes.Black,
+            gfx.DrawString(TranslationService.GetString("ConclusionInterpretation"), TableHeaderFont, XBrushes.Black,
                 new XRect(20, y, gfx.PageSize.Width - 40, 14), XStringFormats.TopLeft);
             y += 14;
 
@@ -349,7 +350,7 @@ namespace Chigen.DocumentExport
             if (string.IsNullOrEmpty(recommendations)) return y;
 
             y += 2;
-            gfx.DrawString("Recommendations:", TableHeaderFont, XBrushes.Black,
+            gfx.DrawString(TranslationService.GetString("RecommendationsLabel"), TableHeaderFont, XBrushes.Black,
                 new XRect(20, y, gfx.PageSize.Width - 40, 14), XStringFormats.TopLeft);
             y += 14;
 
@@ -368,7 +369,7 @@ namespace Chigen.DocumentExport
             gfx.DrawLine(XPens.Black, 20, y, gfx.PageSize.Width - 20, y);
             y += 4;
 
-            gfx.DrawString($"Report generated: {DateTime.Now:yyyy-MM-dd HH:mm}", TableFont, XBrushes.Gray,
+            gfx.DrawString($"{TranslationService.GetString("ReportGenerated")} {DateTime.Now:yyyy-MM-dd HH:mm}", TableFont, XBrushes.Gray,
                 new XRect(20, y, gfx.PageSize.Width - 40, 10), XStringFormats.TopLeft);
             y += 10;
 
@@ -383,7 +384,7 @@ namespace Chigen.DocumentExport
             gfx.DrawString("___________________________________", TableFont, XBrushes.Black,
                 new XRect(20, y, gfx.PageSize.Width - 40, 10), XStringFormats.TopLeft);
             y += 12;
-            gfx.DrawString("Pathologist Signature", TableFont, XBrushes.Black,
+            gfx.DrawString(TranslationService.GetString("PathologistSignature"), TableFont, XBrushes.Black,
                 new XRect(20, y, gfx.PageSize.Width - 40, 10), XStringFormats.TopLeft);
         }
 

@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using PdfSharp.Drawing;
 using Chigen.Core.Models;
+using Chigen.Core.Services;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using A = DocumentFormat.OpenXml.Drawing;
 
@@ -284,7 +285,7 @@ namespace Chigen.DocumentExport
         private void AddReportTitle(Body body)
         {
             body.Append(new Paragraph(
-                new Run(new Text("HEMATOLOGY LABORATORY REPORT") { Space = SpaceProcessingModeValues.Preserve })
+                new Run(new Text(TranslationService.GetString("ReportTitle")) { Space = SpaceProcessingModeValues.Preserve })
             )
             {
                 ParagraphProperties = new ParagraphProperties(
@@ -416,38 +417,38 @@ namespace Chigen.DocumentExport
             string leftDob = _template.ShowPatientDob ? patient.DateOfBirth : "";
 
             if (_template.ShowPatientId && _template.ShowPatientDob)
-                rows.Add(("Patient ID", leftId, "Date of Birth", leftDob));
+                rows.Add((TranslationService.GetString("report_PatientId"), leftId, TranslationService.GetString("report_DateOfBirth"), leftDob));
             else if (_template.ShowPatientId)
-                rows.Add(("Patient ID", leftId, "", ""));
+                rows.Add((TranslationService.GetString("report_PatientId"), leftId, "", ""));
             else if (_template.ShowPatientDob)
-                rows.Add(("Date of Birth", leftDob, "", ""));
+                rows.Add((TranslationService.GetString("report_DateOfBirth"), leftDob, "", ""));
 
             if (_template.ShowPatientName || _template.ShowPatientPhysician)
-                rows.Add(("Patient Name", _template.ShowPatientName ? patient.Name : "", "Physician", _template.ShowPatientPhysician ? patient.Physician : ""));
+                rows.Add((TranslationService.GetString("report_PatientName"), _template.ShowPatientName ? patient.Name : "", TranslationService.GetString("report_Physician"), _template.ShowPatientPhysician ? patient.Physician : ""));
             else if (_template.ShowPatientName)
-                rows.Add(("Patient Name", patient.Name, "", ""));
+                rows.Add((TranslationService.GetString("report_PatientName"), patient.Name, "", ""));
             else if (_template.ShowPatientPhysician)
-                rows.Add(("Physician", patient.Physician, "", ""));
+                rows.Add((TranslationService.GetString("report_Physician"), patient.Physician, "", ""));
 
             if (_template.ShowPatientSex || _template.ShowPatientWard)
-                rows.Add(("Sex", _template.ShowPatientSex ? patient.Sex : "", "Ward", _template.ShowPatientWard ? patient.Ward : ""));
+                rows.Add((TranslationService.GetString("report_Sex"), _template.ShowPatientSex ? patient.Sex : "", TranslationService.GetString("report_Ward"), _template.ShowPatientWard ? patient.Ward : ""));
             else if (_template.ShowPatientSex)
-                rows.Add(("Sex", patient.Sex, "", ""));
+                rows.Add((TranslationService.GetString("report_Sex"), patient.Sex, "", ""));
             else if (_template.ShowPatientWard)
-                rows.Add(("Ward", patient.Ward, "", ""));
+                rows.Add((TranslationService.GetString("report_Ward"), patient.Ward, "", ""));
 
             if (_template.ShowPatientDiagnosis || _template.ShowPatientPaymentMethod)
-                rows.Add(("Diagnosis", _template.ShowPatientDiagnosis ? patient.Diagnosis : "", "Payment Method", _template.ShowPatientPaymentMethod ? patient.PaymentMethod : ""));
+                rows.Add((TranslationService.GetString("report_Diagnosis"), _template.ShowPatientDiagnosis ? patient.Diagnosis : "", TranslationService.GetString("report_PaymentMethod"), _template.ShowPatientPaymentMethod ? patient.PaymentMethod : ""));
             else if (_template.ShowPatientDiagnosis)
-                rows.Add(("Diagnosis", patient.Diagnosis, "", ""));
+                rows.Add((TranslationService.GetString("report_Diagnosis"), patient.Diagnosis, "", ""));
             else if (_template.ShowPatientPaymentMethod)
-                rows.Add(("Payment Method", patient.PaymentMethod, "", ""));
+                rows.Add((TranslationService.GetString("report_PaymentMethod"), patient.PaymentMethod, "", ""));
 
             if (_template.ShowPatientAddress)
-                rows.Add(("Address", patient.Address, "Collection Date", specimen.CollectionDate));
+                rows.Add((TranslationService.GetString("report_Address"), patient.Address, TranslationService.GetString("report_CollectionDate"), specimen.CollectionDate));
 
-            rows.Add(("", "", "Specimen", specimen.Type));
-            rows.Add(("", "", "Received", specimen.ReceivedDate));
+            rows.Add(("", "", TranslationService.GetString("report_Specimen"), specimen.Type));
+            rows.Add(("", "", TranslationService.GetString("report_Received"), specimen.ReceivedDate));
 
             var table = new Table();
             var props = new TableProperties(
@@ -505,7 +506,7 @@ namespace Chigen.DocumentExport
             body.Append(new Paragraph(
                 new Run(
                     new RunProperties(new FontSize { Val = "20" }),
-                    new Text("CELL DIFFERENTIAL COUNT") { Space = SpaceProcessingModeValues.Preserve }
+                    new Text(TranslationService.GetString("CellDifferentialCount")) { Space = SpaceProcessingModeValues.Preserve }
                 )
             )
             {
@@ -531,12 +532,12 @@ namespace Chigen.DocumentExport
 
             var headerRow = new TableRow();
             headerRow.Append(
-                CreateHeaderCell("Cell Type"),
-                CreateHeaderCell("Count"),
-                CreateHeaderCell("%")
+                CreateHeaderCell(TranslationService.GetString("ColCellType")),
+                CreateHeaderCell(TranslationService.GetString("ColCount")),
+                CreateHeaderCell(TranslationService.GetString("ColPercent"))
             );
             if (_template.ShowReferenceRanges)
-                headerRow.Append(CreateHeaderCell("Ref Range"));
+                headerRow.Append(CreateHeaderCell(TranslationService.GetString("ColRefRange")));
 
             table.Append(headerRow);
 
@@ -555,7 +556,7 @@ namespace Chigen.DocumentExport
 
             var totalRow = new TableRow();
             totalRow.Append(
-                CreateCell("TOTAL", true, 2500),
+                CreateCell(TranslationService.GetString("Total"), true, 2500),
                 CreateCell(counterState.Total.ToString(), true, 1000),
                 CreateCell("100%", true, 1000)
             );
@@ -590,10 +591,10 @@ namespace Chigen.DocumentExport
 
             body.Append(new Paragraph(new Run(new Text("") { Space = SpaceProcessingModeValues.Preserve })));
             body.Append(new Paragraph(
-                new Run(new RunProperties(new Bold(), new FontSize { Val = "18" }), new Text("Conclusion / Interpretation:") { Space = SpaceProcessingModeValues.Preserve })
+                new Run(new RunProperties(new Bold(), new FontSize { Val = "18" }), new Text(TranslationService.GetString("ConclusionInterpretation")) { Space = SpaceProcessingModeValues.Preserve })
             ));
 
-            var commentText = string.IsNullOrEmpty(Conclusion) ? "No abnormalities detected." : Conclusion;
+            var commentText = string.IsNullOrEmpty(Conclusion) ? TranslationService.GetString("NoAbnormalities") : Conclusion;
 
             body.Append(new Paragraph(
                 new ParagraphProperties(new SpacingBetweenLines { Before = "20", After = "20" }),
@@ -606,7 +607,7 @@ namespace Chigen.DocumentExport
             if (string.IsNullOrEmpty(recommendations)) return;
 
             body.Append(new Paragraph(
-                new Run(new RunProperties(new Bold(), new FontSize { Val = "18" }), new Text("Recommendations:") { Space = SpaceProcessingModeValues.Preserve })
+                new Run(new RunProperties(new Bold(), new FontSize { Val = "18" }), new Text(TranslationService.GetString("RecommendationsLabel")) { Space = SpaceProcessingModeValues.Preserve })
             ));
 
             body.Append(new Paragraph(
@@ -629,7 +630,7 @@ namespace Chigen.DocumentExport
 
             body.Append(new Paragraph(
                 borderProps,
-                new Run(new RunProperties(new FontSize { Val = "16" }), new Text($"Report generated: {DateTime.Now:yyyy-MM-dd HH:mm}") { Space = SpaceProcessingModeValues.Preserve })
+                new Run(new RunProperties(new FontSize { Val = "16" }), new Text($"{TranslationService.GetString("ReportGenerated")} {DateTime.Now:yyyy-MM-dd HH:mm}") { Space = SpaceProcessingModeValues.Preserve })
             ));
 
             if (!string.IsNullOrEmpty(_letterhead.FooterText))
@@ -646,7 +647,7 @@ namespace Chigen.DocumentExport
 
             body.Append(new Paragraph(
                 new ParagraphProperties(new SpacingBetweenLines { Before = "0", After = "0" }),
-                new Run(new RunProperties(new FontSize { Val = "16" }), new Text("Pathologist Signature") { Space = SpaceProcessingModeValues.Preserve })
+                new Run(new RunProperties(new FontSize { Val = "16" }), new Text(TranslationService.GetString("PathologistSignature")) { Space = SpaceProcessingModeValues.Preserve })
             ));
         }
 

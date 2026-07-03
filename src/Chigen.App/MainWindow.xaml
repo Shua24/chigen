@@ -6,7 +6,7 @@
         xmlns:vm="clr-namespace:Chigen.App.ViewModels"
         xmlns:core="clr-namespace:Chigen.Core.Models;assembly=Chigen.Core"
         mc:Ignorable="d"
-        Title="Chigen"
+        Title="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=MainTitle}"
         Height="750" Width="1100"
         MinHeight="600" MinWidth="960"
         WindowStartupLocation="CenterScreen"
@@ -45,7 +45,7 @@
         <!-- Header -->
         <Border Grid.Row="0" Background="#1A3C6E" Padding="10">
             <StackPanel>
-                <TextBlock Text="Chigen — Cell Differential Counter" FontSize="20" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=MainTitle}" FontSize="20" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
                 <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#CCCCCC" HorizontalAlignment="Center"/>
             </StackPanel>
         </Border>
@@ -63,19 +63,19 @@
                 <Border Grid.Column="0" Background="#E8E8E8" Padding="8,4" CornerRadius="4" BorderBrush="#CCC" BorderThickness="1"
                         Visibility="{Binding HasPatientInfo, Converter={StaticResource BoolToVis}}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock FontWeight="Bold" FontSize="13" VerticalAlignment="Center">Patient:</TextBlock>
+                        <TextBlock FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=PatientLabel}"/>
                         <TextBlock Text="{Binding PatientDisplay}" FontSize="13" Margin="6,0,4,0" VerticalAlignment="Center"/>
-                        <Button Content="Edit" FontSize="11" Padding="6,1" Margin="4,0,0,0"
+                        <Button Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Edit}" FontSize="11" Padding="6,1" Margin="4,0,0,0"
                                 Cursor="Hand" Click="Patient_Click"/>
                     </StackPanel>
                 </Border>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                    <TextBlock FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Margin="0,0,6,0">Mode:</TextBlock>
-                    <RadioButton Content="Peripheral Blood" IsChecked="{Binding IsPbMode, Mode=OneWay}" GroupName="Mode"
+                    <TextBlock FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Margin="0,0,6,0" Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Mode}"/>
+                    <RadioButton Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=PeripheralBlood}" IsChecked="{Binding IsPbMode, Mode=OneWay}" GroupName="Mode"
                                  Margin="2" FontWeight="Bold" FontSize="13"
                                  Checked="PbMode_Checked"/>
-                    <RadioButton Content="Bone Marrow" IsChecked="{Binding IsBmMode, Mode=OneWay}" GroupName="Mode"
+                    <RadioButton Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=BoneMarrow}" IsChecked="{Binding IsBmMode, Mode=OneWay}" GroupName="Mode"
                                  Margin="2" FontWeight="Bold" FontSize="13"
                                  Checked="BmMode_Checked"/>
                 </StackPanel>
@@ -90,47 +90,39 @@
             <ItemsControl ItemsSource="{Binding Entries}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="4">
+                        <Border Background="{Binding CellType.Group, Converter={x:Null}}" Padding="4" Margin="1" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="50"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="80"/>
-                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="60"/>
                                     <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Border Grid.Column="0" Background="#1A3C6E" CornerRadius="3" Width="32" Height="28" HorizontalAlignment="Center">
-                                    <TextBlock Text="{Binding CellType.Key}" 
-                                               Foreground="White" FontWeight="Bold"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               FontSize="14"/>
+                                <Border Grid.Column="0" Background="#1A3C6E" CornerRadius="4" Width="36" Height="30" HorizontalAlignment="Center" Margin="2">
+                                    <TextBlock Text="{Binding CellType.Key}" Foreground="White" FontWeight="Bold" FontSize="15"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
 
-                                <TextBlock Grid.Column="1" Text="{Binding CellType.Name}" 
-                                           FontSize="14" VerticalAlignment="Center" Margin="8,0"/>
+                                <TextBlock Grid.Column="1" Text="{Binding CellType.Name}" FontSize="14" VerticalAlignment="Center" Margin="8,0"/>
 
-                                <TextBlock Grid.Column="2" Text="{Binding Count}" 
-                                           FontSize="16" FontWeight="Bold" 
+                                <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="15" FontWeight="Bold"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <TextBlock Grid.Column="3" Text="{Binding Percentage, StringFormat={}{0:F1}%}" 
-                                           FontSize="14" 
+                                <TextBlock Grid.Column="3" Text="{Binding Percent, StringFormat={}{0:F1}%}" FontSize="13"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <TextBlock Grid.Column="4" Text="{Binding CellType.ReferenceRange}" 
-                                           FontSize="12" Foreground="#666" 
+                                <TextBlock Grid.Column="4" Text="{Binding CellType.ReferenceRange}" FontSize="11" Foreground="#888"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button Content="−" Width="24" Height="24" FontSize="14" FontWeight="Bold"
-                                            Padding="0" Margin="1"
-                                            Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.DecrementCommand}"
-                                            CommandParameter="{Binding CellType.Id}"/>
-                                    <Button Content="+" Width="24" Height="24" FontSize="14" FontWeight="Bold"
-                                            Padding="0" Margin="1"
+                                <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="4,0">
+                                    <Button Content="+" Width="24" Height="24" FontWeight="Bold" FontSize="14" Padding="0" Margin="1"
                                             Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.IncrementCommand}"
+                                            CommandParameter="{Binding CellType.Id}"/>
+                                    <Button Content="–" Width="24" Height="24" FontWeight="Bold" FontSize="14" Padding="0" Margin="1"
+                                            Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.DecrementCommand}"
                                             CommandParameter="{Binding CellType.Id}"/>
                                 </StackPanel>
                             </Grid>
@@ -147,12 +139,11 @@
                     <ColumnDefinition Width="50"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="80"/>
                     <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="80"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">–</TextBlock>
-                <TextBlock Grid.Column="1" FontWeight="Bold" Foreground="White" FontSize="14" VerticalAlignment="Center">TOTAL</TextBlock>
+                <TextBlock Grid.Column="1" FontWeight="Bold" Foreground="White" FontSize="14" VerticalAlignment="Center" Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Total}"/>
                 <TextBlock Grid.Column="2" Text="{Binding TotalCount}" FontWeight="Bold" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="3" Text="100%" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Grid>
@@ -173,30 +164,30 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Button Grid.Column="0" Content="Generate DOCX" Style="{StaticResource ActionButton}"
+                <Button Grid.Column="0" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=GenerateDocx}" Style="{StaticResource ActionButton}"
                         IsEnabled="{Binding CanExport}"
                         Click="GenerateDocx_Click"/>
-                <Button Grid.Column="1" Content="Export PDF" Style="{StaticResource ActionButton}"
+                <Button Grid.Column="1" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=ExportPdf}" Style="{StaticResource ActionButton}"
                         IsEnabled="{Binding CanExport}"
                         Click="ExportPdf_Click"/>
-                <Button Grid.Column="2" Content="Undo (Del)" Style="{StaticResource ActionButton}"
+                <Button Grid.Column="2" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=UndoDel}" Style="{StaticResource ActionButton}"
                         IsEnabled="{Binding CanUndo}"
                         Click="Undo_Click"/>
-                <Button Grid.Column="3" Content="Reset" Style="{StaticResource ActionButton}"
+                <Button Grid.Column="3" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Reset}" Style="{StaticResource ActionButton}"
                         Click="Reset_Click"/>
-                <Button Grid.Column="4" Content="Conclusion" Style="{StaticResource ActionButton}"
+                <Button Grid.Column="4" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Conclusion}" Style="{StaticResource ActionButton}"
                         MinWidth="80"
                         Click="Conclusion_Click"/>
-                <Button Grid.Column="5" Content="Recommendations" Style="{StaticResource ActionButton}"
+                <Button Grid.Column="5" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Recommendations}" Style="{StaticResource ActionButton}"
                         MinWidth="80"
                         Click="Recommendations_Click"/>
-                <Button Grid.Column="6" Content="Hotkeys" Style="{StaticResource ActionButton}"
+                <Button Grid.Column="6" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Hotkeys}" Style="{StaticResource ActionButton}"
                         MinWidth="80"
                         Click="Hotkeys_Click"/>
-                <Button Grid.Column="7" Content="Settings" Style="{StaticResource ActionButton}"
+                <Button Grid.Column="7" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Settings}" Style="{StaticResource ActionButton}"
                         MinWidth="80"
                         Click="Settings_Click"/>
-                <Button Grid.Column="8" Content="Exit" Style="{StaticResource ActionButton}"
+                <Button Grid.Column="8" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Exit}" Style="{StaticResource ActionButton}"
                         MinWidth="80" Background="#D9534F" Foreground="White"
                         Click="Exit_Click"/>
             </Grid>
@@ -209,14 +200,16 @@
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <TextBlock Foreground="#AAAAAA" FontSize="11">
-                    <Run Text="Keys: "/>
-                    <Run Text="0-9,A-Z=Count  |  "/>
-                    <Run Text="Del=Undo  |  "/>
-                    <Run Text="R=Reset  |  "/>
-                    <Run Text="Ctrl+G=DOCX  |  "/>
-                    <Run Text="Ctrl+P=PDF"/>
+                    <Run Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=KeysHint}"/>
+                    <Run Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Keys0to9}"/>
+                    <Run Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=DelUndo}"/>
+                    <Run Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=RReset}"/>
+                    <Run Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=CtrlG}"/>
+                    <Run Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=CtrlP}"/>
                 </TextBlock>
             </StatusBarItem>
         </StatusBar>
     </Grid>
 </Window>
+
+

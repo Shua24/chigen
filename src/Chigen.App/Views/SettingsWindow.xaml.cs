@@ -1,5 +1,7 @@
 using System.Windows;
+using System.Windows.Controls;
 using Chigen.App.ViewModels;
+using Chigen.Core.Services;
 
 namespace Chigen.App.Views
 {
@@ -19,16 +21,27 @@ namespace Chigen.App.Views
             _viewModel.BrowseLogo();
         }
 
+        private void Language_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (_viewModel == null) return;
+            TranslationService.CurrentLanguage = _viewModel.SelectedLanguage;
+        }
+
         private void Save_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.Save();
-            MessageBox.Show("All settings saved. You may continue to do the cell differentiation process.", "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(
+                TranslationService.GetString("SavedMessage"),
+                TranslationService.GetString("SavedCaption"),
+                MessageBoxButton.OK, MessageBoxImage.Information);
             DialogResult = true;
             Close();
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
+            // Restore original language if user cancelled
+            TranslationService.CurrentLanguage = TemplateService.LoadLanguage();
             DialogResult = false;
             Close();
         }
