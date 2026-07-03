@@ -20,7 +20,36 @@ public partial class App : Application
         var savedLang = TemplateService.LoadLanguage();
         TranslationService.CurrentLanguage = savedLang;
 
+        // Restore saved theme preference
+        var savedTheme = TemplateService.LoadTheme();
+        SetTheme(savedTheme);
+
         base.OnStartup(e);
+    }
+
+    public static void SetTheme(string themeName)
+    {
+        var dict = new ResourceDictionary();
+        if (themeName == "Dark")
+        {
+            dict.Source = new Uri("Themes/DarkTheme.xaml", UriKind.Relative);
+        }
+        else
+        {
+            dict.Source = new Uri("Themes/LightTheme.xaml", UriKind.Relative);
+        }
+
+        var merged = Application.Current.Resources.MergedDictionaries;
+        for (int i = 0; i < merged.Count; i++)
+        {
+            var src = merged[i].Source?.OriginalString;
+            if (src != null && (src.Contains("LightTheme.xaml") || src.Contains("DarkTheme.xaml")))
+            {
+                merged[i] = dict;
+                return;
+            }
+        }
+        merged.Insert(0, dict);
     }
 
     protected override void OnExit(ExitEventArgs e)

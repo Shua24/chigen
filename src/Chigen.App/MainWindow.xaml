@@ -1,4 +1,4 @@
-﻿<Window x:Class="Chigen.App.MainWindow"
+<Window x:Class="Chigen.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,8 +7,8 @@
         xmlns:core="clr-namespace:Chigen.Core.Models;assembly=Chigen.Core"
         mc:Ignorable="d"
         Title="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=MainTitle}"
-        Height="750" Width="1100"
-        MinHeight="600" MinWidth="960"
+        Height="780" Width="1120"
+        MinHeight="600" MinWidth="980"
         WindowStartupLocation="CenterScreen"
         PreviewKeyDown="Window_PreviewKeyDown"
         Loaded="Window_Loaded">
@@ -17,22 +17,12 @@
         <KeyBinding Key="P" Modifiers="Control" Command="{Binding ExportPdfCommand}"/>
         <KeyBinding Key="R" Command="{Binding ResetCommand}"/>
         <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoCommand}"/>
-
     </Window.InputBindings>
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-        <Style TargetType="Button" x:Key="ActionButton">
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="4"/>
-            <Setter Property="MinWidth" Value="120"/>
-        </Style>
-        <Style TargetType="Label">
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="2,0"/>
-        </Style>
     </Window.Resources>
-    <Grid>
+    
+    <Grid Background="{DynamicResource WindowBgBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -43,15 +33,34 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border Grid.Row="0" Background="#1A3C6E" Padding="10">
-            <StackPanel>
-                <TextBlock Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=MainTitle}" FontSize="20" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
-                <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#CCCCCC" HorizontalAlignment="Center"/>
-            </StackPanel>
+        <Border Grid.Row="0" Background="{DynamicResource HeaderBgBrush}" Padding="16,12" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" HorizontalAlignment="Center" Margin="40,0,0,0">
+                    <TextBlock Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=MainTitle}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource HeaderFgBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="{DynamicResource MutedTextBrush}" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                </StackPanel>
+                
+                <!-- Theme Toggle Button -->
+                <!-- Theme Toggle Button -->
+                <Button Grid.Column="1" Click="ThemeToggle_Click" 
+                        Background="Transparent" BorderThickness="0" 
+                        Padding="10,6" 
+                        VerticalAlignment="Center" HorizontalAlignment="Right"
+                        ToolTip="Toggle Theme">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Path Data="{Binding CurrentThemeIcon}" Fill="{DynamicResource HeaderFgBrush}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0"/>
+                        <TextBlock Text="{Binding CurrentThemeLabel}" Foreground="{DynamicResource HeaderFgBrush}" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
         </Border>
 
         <!-- Patient summary bar + Mode selector -->
-        <Border Grid.Row="1" Background="#F5F5F5" Padding="8,6" BorderBrush="#D0D0D0" BorderThickness="0,0,0,1">
+        <Border Grid.Row="1" Background="{DynamicResource SubHeaderBgBrush}" Padding="12,8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -60,146 +69,209 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Background="#E8E8E8" Padding="8,4" CornerRadius="4" BorderBrush="#CCC" BorderThickness="1"
+                <Border Grid.Column="0" Background="{DynamicResource SurfaceBgBrush}" Padding="10,6" CornerRadius="6" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                         Visibility="{Binding HasPatientInfo, Converter={StaticResource BoolToVis}}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=PatientLabel}"/>
-                        <TextBlock Text="{Binding PatientDisplay}" FontSize="13" Margin="6,0,4,0" VerticalAlignment="Center"/>
-                        <Button Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Edit}" FontSize="11" Padding="6,1" Margin="4,0,0,0"
-                                Cursor="Hand" Click="Patient_Click"/>
+                        <TextBlock FontWeight="Bold" FontSize="13" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=PatientLabel}"/>
+                        <TextBlock Text="{Binding PatientDisplay}" FontSize="13" Foreground="{DynamicResource PrimaryTextBrush}" Margin="8,0,6,0" VerticalAlignment="Center"/>
+                        
+                        <Button Style="{StaticResource ModernButton}" Padding="8,3" Margin="4,0,0,0" Height="26" Cursor="Hand" Click="Patient_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeomEdit}" Fill="{DynamicResource PrimaryTextBrush}" Width="10" Height="10" Stretch="Uniform" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Edit}" FontSize="11" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </Border>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                    <TextBlock FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Margin="0,0,6,0" Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Mode}"/>
-                    <RadioButton Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=PeripheralBlood}" IsChecked="{Binding IsPbMode, Mode=OneWay}" GroupName="Mode"
-                                 Margin="2" FontWeight="Bold" FontSize="13"
-                                 Checked="PbMode_Checked"/>
-                    <RadioButton Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=BoneMarrow}" IsChecked="{Binding IsBmMode, Mode=OneWay}" GroupName="Mode"
-                                 Margin="2" FontWeight="Bold" FontSize="13"
-                                 Checked="BmMode_Checked"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <TextBlock FontWeight="Bold" FontSize="13" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Margin="0,0,8,0" Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Mode}"/>
+                    <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="2" Background="{DynamicResource SurfaceBgBrush}">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=PeripheralBlood}" IsChecked="{Binding IsPbMode, Mode=OneWay}" GroupName="Mode"
+                                         Style="{StaticResource SegmentedRadioButton}" Margin="1,0"
+                                         Checked="PbMode_Checked"/>
+                            <RadioButton Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=BoneMarrow}" IsChecked="{Binding IsBmMode, Mode=OneWay}" GroupName="Mode"
+                                         Style="{StaticResource SegmentedRadioButton}" Margin="1,0"
+                                         Checked="BmMode_Checked"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
-                <TextBlock Grid.Column="3" Text="{Binding SpecimenDate}" FontSize="11" Foreground="#888"
-                           VerticalAlignment="Center" Margin="10,0,4,0"/>
+                <TextBlock Grid.Column="3" Text="{Binding SpecimenDate}" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}"
+                           VerticalAlignment="Center" Margin="14,0,6,0" FontWeight="SemiBold"/>
             </Grid>
         </Border>
 
         <!-- Cell Differential Table -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,8">
             <ItemsControl ItemsSource="{Binding Entries}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="{Binding CellType.Group, Converter={x:Null}}" Padding="4" Margin="1" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+                        <Border x:Name="RowBorder" Background="{DynamicResource SurfaceBgBrush}" Padding="12,8" Margin="12,4" CornerRadius="6" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="60"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="60"/>
-                                    <ColumnDefinition Width="60"/>
-                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Border Grid.Column="0" Background="#1A3C6E" CornerRadius="4" Width="36" Height="30" HorizontalAlignment="Center" Margin="2">
-                                    <TextBlock Text="{Binding CellType.Key}" Foreground="White" FontWeight="Bold" FontSize="15"
+                                <!-- Keycap Badge -->
+                                <Border Grid.Column="0" Background="{DynamicResource KeycapBgBrush}" BorderBrush="{DynamicResource KeycapBorderBrush}" BorderThickness="1,1,1,2" CornerRadius="4" Width="38" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding CellType.Key}" Foreground="{DynamicResource KeycapFgBrush}" FontWeight="Bold" FontSize="14"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
 
-                                <TextBlock Grid.Column="1" Text="{Binding CellType.Name}" FontSize="14" VerticalAlignment="Center" Margin="8,0"/>
+                                <TextBlock Grid.Column="1" Text="{Binding CellType.Name}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center" Margin="12,0"/>
 
-                                <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="15" FontWeight="Bold"
+                                <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <TextBlock Grid.Column="3" Text="{Binding Percent, StringFormat={}{0:F1}%}" FontSize="13"
+                                <TextBlock Grid.Column="3" Text="{Binding Percent, StringFormat={}{0:F1}%}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource SecondaryTextBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <TextBlock Grid.Column="4" Text="{Binding CellType.ReferenceRange}" FontSize="11" Foreground="#888"
+                                <TextBlock Grid.Column="4" Text="{Binding CellType.ReferenceRange}" FontSize="12" Foreground="{DynamicResource MutedTextBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="4,0">
-                                    <Button Content="+" Width="24" Height="24" FontWeight="Bold" FontSize="14" Padding="0" Margin="1"
+                                <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="6,0">
+                                    <Button Content="+" Width="28" Height="28" FontWeight="Bold" FontSize="14" Padding="0" Margin="2"
+                                            Style="{StaticResource AccentButton}"
                                             Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.IncrementCommand}"
                                             CommandParameter="{Binding CellType.Id}"/>
-                                    <Button Content="–" Width="24" Height="24" FontWeight="Bold" FontSize="14" Padding="0" Margin="1"
+                                    <Button Content="–" Width="28" Height="28" FontWeight="Bold" FontSize="14" Padding="0" Margin="2"
+                                            Style="{StaticResource ModernButton}"
                                             Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.DecrementCommand}"
                                             CommandParameter="{Binding CellType.Id}"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
+                        <DataTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="RowBorder" Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+                                <Setter TargetName="RowBorder" Property="BorderBrush" Value="{DynamicResource BorderBrushDark}"/>
+                            </Trigger>
+                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
 
         <!-- Total bar -->
-        <Border Grid.Row="3" Background="#1A3C6E" Padding="8">
+        <Border Grid.Row="3" Background="{DynamicResource AccentBrush}" Padding="14,10" CornerRadius="6" Margin="12,4,12,12">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="60"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="120"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">–</TextBlock>
-                <TextBlock Grid.Column="1" FontWeight="Bold" Foreground="White" FontSize="14" VerticalAlignment="Center" Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Total}"/>
-                <TextBlock Grid.Column="2" Text="{Binding TotalCount}" FontWeight="Bold" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="3" Text="100%" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="0" FontWeight="Bold" Foreground="{DynamicResource AccentFgBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14">–</TextBlock>
+                <TextBlock Grid.Column="1" FontWeight="Bold" Foreground="{DynamicResource AccentFgBrush}" FontSize="15" VerticalAlignment="Center" Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Total}"/>
+                <TextBlock Grid.Column="2" Text="{Binding TotalCount}" FontWeight="Bold" Foreground="{DynamicResource AccentFgBrush}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="3" Text="100%" FontWeight="Bold" Foreground="{DynamicResource AccentFgBrush}" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Grid>
         </Border>
 
         <!-- Action buttons -->
-        <Border Grid.Row="4" Background="#F0F0F0" Padding="10" BorderBrush="#D0D0D0" BorderThickness="0,1,0,0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Button Grid.Column="0" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=GenerateDocx}" Style="{StaticResource ActionButton}"
-                        IsEnabled="{Binding CanExport}"
-                        Click="GenerateDocx_Click"/>
-                <Button Grid.Column="1" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=ExportPdf}" Style="{StaticResource ActionButton}"
-                        IsEnabled="{Binding CanExport}"
-                        Click="ExportPdf_Click"/>
-                <Button Grid.Column="2" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=UndoDel}" Style="{StaticResource ActionButton}"
-                        IsEnabled="{Binding CanUndo}"
-                        Click="Undo_Click"/>
-                <Button Grid.Column="3" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Reset}" Style="{StaticResource ActionButton}"
-                        Click="Reset_Click"/>
-                <Button Grid.Column="4" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Conclusion}" Style="{StaticResource ActionButton}"
-                        MinWidth="80"
-                        Click="Conclusion_Click"/>
-                <Button Grid.Column="5" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Recommendations}" Style="{StaticResource ActionButton}"
-                        MinWidth="80"
-                        Click="Recommendations_Click"/>
-                <Button Grid.Column="6" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Hotkeys}" Style="{StaticResource ActionButton}"
-                        MinWidth="80"
-                        Click="Hotkeys_Click"/>
-                <Button Grid.Column="7" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Settings}" Style="{StaticResource ActionButton}"
-                        MinWidth="80"
-                        Click="Settings_Click"/>
-                <Button Grid.Column="8" Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Exit}" Style="{StaticResource ActionButton}"
-                        MinWidth="80" Background="#D9534F" Foreground="White"
-                        Click="Exit_Click"/>
-            </Grid>
+        <Border Grid.Row="4" Background="{DynamicResource SubHeaderBgBrush}" Padding="12" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=GenerateDocx}" Style="{StaticResource AccentButton}"
+                        IsEnabled="{Binding CanExport}" Margin="4" Click="GenerateDocx_Click">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeomDocx}" Fill="{DynamicResource AccentFgBrush}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+                
+                <Button Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=ExportPdf}" Style="{StaticResource AccentButton}"
+                        IsEnabled="{Binding CanExport}" Margin="4" Click="ExportPdf_Click">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeomPdf}" Fill="{DynamicResource AccentFgBrush}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+                
+                <Button Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=UndoDel}" Style="{StaticResource ModernButton}"
+                        IsEnabled="{Binding CanUndo}" Margin="4" Click="Undo_Click">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeomUndo}" Fill="{DynamicResource PrimaryTextBrush}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+                
+                <Button Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Reset}" Style="{StaticResource ModernButton}" Margin="4" Click="Reset_Click">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeomReset}" Fill="{DynamicResource PrimaryTextBrush}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+                
+                <Button Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Conclusion}" Style="{StaticResource ModernButton}" Margin="4" Click="Conclusion_Click"/>
+                
+                <Button Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Recommendations}" Style="{StaticResource ModernButton}" Margin="4" Click="Recommendations_Click"/>
+                
+                <Button Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Hotkeys}" Style="{StaticResource ModernButton}" Margin="4" Click="Hotkeys_Click">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeomHotkeys}" Fill="{DynamicResource PrimaryTextBrush}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+                
+                <Button Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Settings}" Style="{StaticResource ModernButton}" Margin="4" Click="Settings_Click">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeomSettings}" Fill="{DynamicResource PrimaryTextBrush}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+                
+                <Button Content="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Exit}" Style="{StaticResource DangerButton}" Margin="4" Click="Exit_Click">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeomExit}" Fill="White" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+            </WrapPanel>
         </Border>
 
         <!-- Status bar -->
-        <StatusBar Grid.Row="5" Background="#1A3C6E">
+        <StatusBar Grid.Row="5" Background="{DynamicResource HeaderBgBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
             <StatusBarItem>
-                <TextBlock Text="{Binding StatusText}" Foreground="White" FontSize="12"/>
+                <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource HeaderFgBrush}" FontSize="12"/>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
-                <TextBlock Foreground="#AAAAAA" FontSize="11">
+                <TextBlock Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11">
                     <Run Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=KeysHint}"/>
                     <Run Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=Keys0to9}"/>
                     <Run Text="{Binding Mode=OneWay, Source={StaticResource Translations}, Path=DelUndo}"/>

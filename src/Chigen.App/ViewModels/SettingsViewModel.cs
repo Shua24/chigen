@@ -125,6 +125,27 @@ namespace Chigen.App.ViewModels
             set { _selectedLanguage = value; OnPropertyChanged(); }
         }
 
+        private string _selectedTheme = "Light";
+        public string SelectedTheme
+        {
+            get => _selectedTheme;
+            set
+            {
+                if (_selectedTheme != value)
+                {
+                    _selectedTheme = value;
+                    OnPropertyChanged();
+                    App.SetTheme(value);
+                }
+            }
+        }
+
+        public static List<KeyValuePair<string, string>> ThemeOptions { get; } =
+        [
+            new("Light", "Light"),
+            new("Dark", "Dark")
+        ];
+
         public List<KeyValuePair<string, LogoPlacement>> LogoPlacementOptions
         {
             get
@@ -149,6 +170,7 @@ namespace Chigen.App.ViewModels
             _config = TemplateService.LoadLetterhead();
             _template = TemplateService.LoadTemplate();
             _selectedLanguage = TranslationService.CurrentLanguage;
+            _selectedTheme = TemplateService.LoadTheme();
             TranslationService.LanguageChanged += () =>
             {
                 OnPropertyChanged(nameof(LogoPlacementOptions));
@@ -160,6 +182,7 @@ namespace Chigen.App.ViewModels
             TemplateService.SaveLetterhead(_config);
             TemplateService.SaveTemplate(_template);
             TemplateService.SaveLanguage(SelectedLanguage);
+            TemplateService.SaveTheme(SelectedTheme);
         }
 
         public void BrowseLogo()

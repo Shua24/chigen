@@ -1,9 +1,10 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using Chigen.Core.Models;
 using Chigen.Core.Services;
 using Chigen.DocumentExport;
@@ -24,6 +25,7 @@ namespace Chigen.App.ViewModels
             {
                 OnPropertyChanged(nameof(PatientDisplay));
                 OnPropertyChanged(nameof(StatusText));
+                OnPropertyChanged(nameof(CurrentThemeLabel));
             };
             RefreshTemplateSettings();
             ApplySavedHotkeys();
@@ -149,6 +151,35 @@ namespace Chigen.App.ViewModels
 
         public bool IsPbMode => CurrentMode == CounterMode.PeripheralBlood;
         public bool IsBmMode => CurrentMode == CounterMode.BoneMarrow;
+
+        public Geometry CurrentThemeIcon
+        {
+            get
+            {
+                var theme = TemplateService.LoadTheme();
+                var key = theme == "Dark" ? "GeomSun" : "GeomMoon";
+                return (Geometry)Application.Current.Resources[key];
+            }
+        }
+
+        public string CurrentThemeLabel
+        {
+            get
+            {
+                var theme = TemplateService.LoadTheme();
+                var key = theme == "Dark" ? "ThemeLightMode" : "ThemeDarkMode";
+                return TranslationService.GetString(key);
+            }
+        }
+ public void ToggleTheme()
+        {
+            var currentTheme = TemplateService.LoadTheme();
+            var newTheme = currentTheme == "Dark" ? "Light" : "Dark";
+            TemplateService.SaveTheme(newTheme);
+            App.SetTheme(newTheme);
+            OnPropertyChanged(nameof(CurrentThemeIcon));
+            OnPropertyChanged(nameof(CurrentThemeLabel));
+        }
 
         private string _statusText;
         public string StatusText
@@ -375,7 +406,8 @@ namespace Chigen.App.ViewModels
 
         public void RefreshTemplateSettings()
         {
-            // Re-read configs if needed (settings window already saves them)
+            OnPropertyChanged(nameof(CurrentThemeIcon));
+            OnPropertyChanged(nameof(CurrentThemeLabel));
         }
 
         private void ApplySavedHotkeys()
@@ -458,5 +490,9 @@ namespace Chigen.App.ViewModels
         }
     }
 }
+
+
+
+
 
 

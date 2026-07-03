@@ -72,6 +72,9 @@ namespace Chigen.App
         public string Language => TranslationService.GetString("Language");
         public string LogoTop => TranslationService.GetString("LogoTop");
         public string LogoSide => TranslationService.GetString("LogoSide");
+        public string Theme => TranslationService.GetString("Theme");
+        public string ThemeLightMode => TranslationService.GetString("ThemeLightMode");
+        public string ThemeDarkMode => TranslationService.GetString("ThemeDarkMode");
 
         // -- PatientInfoWindow --
         public string PatientInfoTitle => TranslationService.GetString("PatientInfoTitle");
@@ -113,3 +116,4 @@ namespace Chigen.App
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }
+

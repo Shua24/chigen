@@ -40,8 +40,9 @@ namespace Chigen.App.Views
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
-            // Restore original language if user cancelled
+            // Restore original language and theme if user cancelled
             TranslationService.CurrentLanguage = TemplateService.LoadLanguage();
+            App.SetTheme(TemplateService.LoadTheme());
             DialogResult = false;
             Close();
         }
