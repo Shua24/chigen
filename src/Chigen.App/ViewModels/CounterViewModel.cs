@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -16,6 +16,20 @@ namespace Chigen.App.ViewModels
         private readonly CounterService _counterService = new();
 
         public ObservableCollection<CellCountEntry> Entries { get; } = [];
+
+        public CounterViewModel()
+        {
+            _statusText = TranslationService.GetString("StatusReady");
+            TranslationService.LanguageChanged += () =>
+            {
+                OnPropertyChanged(nameof(PatientDisplay));
+                OnPropertyChanged(nameof(StatusText));
+            };
+            RefreshTemplateSettings();
+            ApplySavedHotkeys();
+            RefreshEntries();
+            UpdateState();
+        }
 
         private string _patientName = "";
         public string PatientName
@@ -99,10 +113,10 @@ namespace Chigen.App.ViewModels
             get
             {
                 if (string.IsNullOrEmpty(PatientName) && string.IsNullOrEmpty(PatientId))
-                    return "(not set)";
+                    return TranslationService.GetString("PatientNotSet");
                 var display = PatientName;
                 if (!string.IsNullOrEmpty(PatientId))
-                    display += $" (ID: {PatientId})";
+                    display += string.Format(TranslationService.GetString("PatientDisplayFmt"), PatientId);
                 return display;
             }
         }
@@ -136,7 +150,7 @@ namespace Chigen.App.ViewModels
         public bool IsPbMode => CurrentMode == CounterMode.PeripheralBlood;
         public bool IsBmMode => CurrentMode == CounterMode.BoneMarrow;
 
-        private string _statusText = "Ready";
+        private string _statusText;
         public string StatusText
         {
             get => _statusText;
@@ -171,6 +185,13 @@ namespace Chigen.App.ViewModels
             set { _pdfMethod = value; OnPropertyChanged(); }
         }
 
+        public ICommand IncrementCommand => new RelayCommand<string>(IncrementCount);
+        public ICommand DecrementCommand => new RelayCommand<string>(DecrementCount);
+        public ICommand GenerateDocxCommand => new RelayCommand(HandleGenerateDocx);
+        public ICommand ExportPdfCommand => new RelayCommand(HandleExportPdf);
+        public ICommand ResetCommand => new RelayCommand(HandleReset);
+        public ICommand UndoCommand => new RelayCommand(HandleUndo);
+
         private bool _hasPatientInfo = true;
         public bool HasPatientInfo
         {
@@ -178,34 +199,19 @@ namespace Chigen.App.ViewModels
             set { _hasPatientInfo = value; OnPropertyChanged(); }
         }
 
-        public void RefreshTemplateSettings()
+        public void HandleReset()
         {
-            var template = TemplateService.LoadTemplate();
-            HasPatientInfo = template.ShowPatientInfo
-                && (template.ShowPatientId || template.ShowPatientName || template.ShowPatientDob
-                    || template.ShowPatientSex || template.ShowPatientDiagnosis || template.ShowPatientAddress
-                    || template.ShowPatientPhysician || template.ShowPatientWard || template.ShowPatientPaymentMethod);
-        }
-
-        public ICommand IncrementCommand { get; }
-        public ICommand DecrementCommand { get; }
-        public ICommand UndoCommand { get; }
-        public ICommand ResetCommand { get; }
-        public ICommand GenerateDocxCommand { get; }
-        public ICommand ExportPdfCommand { get; }
-
-        public CounterViewModel()
-        {
-            IncrementCommand = new RelayCommand<string>(IncrementCount);
-            DecrementCommand = new RelayCommand<string>(DecrementCount);
-            UndoCommand = new RelayCommand(HandleUndo);
-            ResetCommand = new RelayCommand(HandleReset);
-            GenerateDocxCommand = new RelayCommand(HandleGenerateDocx);
-            ExportPdfCommand = new RelayCommand(HandleExportPdf);
-
-            RefreshTemplateSettings();
-            LoadCellTypes(CounterMode.PeripheralBlood);
-            UpdateState();
+            var result = MessageBox.Show(
+                TranslationService.GetString("ResetConfirm"),
+                TranslationService.GetString("ResetConfirmCaption"),
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                _counterService.Reset();
+                RefreshEntries();
+                UpdateState();
+                StatusText = TranslationService.GetString("StatusReset");
+            }
         }
 
         public void HandleKeyPress(string key)
@@ -213,9 +219,7 @@ namespace Chigen.App.ViewModels
             if (_counterService.TryCount(key))
             {
                 UpdateState();
-                var entry = _counterService.State.Entries.FirstOrDefault(e => e.CellType.Key == key);
-                if (entry != null)
-                    StatusText = $"Counted: {entry.CellType.Name}";
+                StatusText = $"{TranslationService.GetString("StatusCounted")}{key}";
             }
         }
 
@@ -224,18 +228,7 @@ namespace Chigen.App.ViewModels
             if (_counterService.TryUndo())
             {
                 UpdateState();
-                StatusText = "Undo last count";
-            }
-        }
-
-        public void HandleReset()
-        {
-            var result = MessageBox.Show("Reset all counts?", "Confirm Reset", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.Yes)
-            {
-                _counterService.Reset();
-                UpdateState();
-                StatusText = "Counter reset";
+                StatusText = TranslationService.GetString("StatusDecremented");
             }
         }
 
@@ -245,7 +238,7 @@ namespace Chigen.App.ViewModels
             {
                 var saveDialog = new Microsoft.Win32.SaveFileDialog
                 {
-                    Filter = "Word Document (*.docx)|*.docx",
+                    Filter = TranslationService.GetString("DocxFilter"),
                     DefaultExt = ".docx",
                     FileName = $"Differential_Report_{DateTime.Now:yyyyMMdd_HHmm}"
                 };
@@ -254,10 +247,12 @@ namespace Chigen.App.ViewModels
                 {
                     var letterhead = TemplateService.LoadLetterhead();
                     var template = TemplateService.LoadTemplate();
+                    if (template.ShowLetterhead && string.IsNullOrEmpty(letterhead.LogoPath))
+                        throw new InvalidOperationException(TranslationService.GetString("LetterheadLogoRequired"));
                     var generator = new DocxGenerator(letterhead, template);
                     var specimen = new SpecimenInfo
                     {
-                        Type = CurrentMode == CounterMode.PeripheralBlood ? "Peripheral Blood" : "Bone Marrow Aspirate"
+                        Type = CurrentMode == CounterMode.PeripheralBlood ? TranslationService.GetString("SpecimenTypePeripheralBlood") : TranslationService.GetString("SpecimenTypeBoneMarrowAspirate")
                     };
                     var patient = new PatientInfo
                     {
@@ -274,14 +269,23 @@ namespace Chigen.App.ViewModels
                         Recommendations = Recommendations
                     };
                     generator.Create(saveDialog.FileName, _counterService.State, patient, specimen);
-                    StatusText = $"DOCX saved: {saveDialog.FileName}";
-                    MessageBox.Show($"Document saved to:\n{saveDialog.FileName}", "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                    StatusText = $"{TranslationService.GetString("StatusDocxSaved")}{saveDialog.FileName}";
+                    MessageBox.Show(
+                        $"{TranslationService.GetString("DocxSavedMsg")}{saveDialog.FileName}",
+                        TranslationService.GetString("ExportComplete"),
+                        MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                StatusText = $"Error: {ex.Message}";
-                MessageBox.Show($"Failed to generate document:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                var msg = ex is System.Reflection.TargetInvocationException && ex.InnerException != null
+                    ? ex.InnerException.Message
+                    : ex.Message;
+                StatusText = $"{TranslationService.GetString("ExportError")}: {msg}";
+                MessageBox.Show(
+                    $"{TranslationService.GetString("ExportError")}:\n{msg}",
+                    TranslationService.GetString("Error"),
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -291,7 +295,7 @@ namespace Chigen.App.ViewModels
             {
                 var saveDialog = new Microsoft.Win32.SaveFileDialog
                 {
-                    Filter = "PDF Document (*.pdf)|*.pdf",
+                    Filter = TranslationService.GetString("PdfFilter"),
                     DefaultExt = ".pdf",
                     FileName = $"Differential_Report_{DateTime.Now:yyyyMMdd_HHmm}"
                 };
@@ -300,9 +304,11 @@ namespace Chigen.App.ViewModels
                 {
                     var letterhead = TemplateService.LoadLetterhead();
                     var template = TemplateService.LoadTemplate();
+                    if (template.ShowLetterhead && string.IsNullOrEmpty(letterhead.LogoPath))
+                        throw new InvalidOperationException(TranslationService.GetString("LetterheadLogoRequired"));
                     var specimen = new SpecimenInfo
                     {
-                        Type = CurrentMode == CounterMode.PeripheralBlood ? "Peripheral Blood" : "Bone Marrow Aspirate"
+                        Type = CurrentMode == CounterMode.PeripheralBlood ? TranslationService.GetString("SpecimenTypePeripheralBlood") : TranslationService.GetString("SpecimenTypeBoneMarrowAspirate")
                     };
                     var patient = new PatientInfo
                     {
@@ -321,15 +327,26 @@ namespace Chigen.App.ViewModels
 
                     PdfConverter.Convert(saveDialog.FileName, _counterService.State, patient, specimen, letterhead, template, PdfMethod);
 
-                    StatusText = $"PDF saved: {saveDialog.FileName}";
-                    string method = PdfMethod == PdfConversionMethod.WordInterop ? "via Word" : "direct";
-                    MessageBox.Show($"PDF saved to:\n{saveDialog.FileName}\n(Generated {method})", "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                    StatusText = $"{TranslationService.GetString("StatusPdfSaved")}{saveDialog.FileName}";
+                    string method = PdfMethod == PdfConversionMethod.WordInterop
+                        ? TranslationService.GetString("ViaWord")
+                        : TranslationService.GetString("DirectMethod");
+                    MessageBox.Show(
+                        $"{TranslationService.GetString("PdfSavedMsg")}{saveDialog.FileName}{TranslationService.GetString("GeneratedVia")}{method})",
+                        TranslationService.GetString("ExportComplete"),
+                        MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                StatusText = $"Error: {ex.Message}";
-                MessageBox.Show($"Failed to export PDF:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                var msg = ex is System.Reflection.TargetInvocationException && ex.InnerException != null
+                    ? ex.InnerException.Message
+                    : ex.Message;
+                StatusText = $"{TranslationService.GetString("ExportError")}: {msg}";
+                MessageBox.Show(
+                    $"{TranslationService.GetString("ExportError")}:\n{msg}",
+                    TranslationService.GetString("Error"),
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -338,7 +355,9 @@ namespace Chigen.App.ViewModels
             _counterService.LoadCellTypes(mode);
             ApplySavedHotkeys();
             RefreshEntries();
-            StatusText = mode == CounterMode.PeripheralBlood ? "Switched to Peripheral Blood mode" : "Switched to Bone Marrow mode";
+            StatusText = mode == CounterMode.PeripheralBlood
+                ? TranslationService.GetString("StatusSwitchedPb")
+                : TranslationService.GetString("StatusSwitchedBm");
         }
 
         public void LoadCellTypes(CounterMode mode)
@@ -352,6 +371,11 @@ namespace Chigen.App.ViewModels
         {
             ApplySavedHotkeys();
             RefreshEntries();
+        }
+
+        public void RefreshTemplateSettings()
+        {
+            // Re-read configs if needed (settings window already saves them)
         }
 
         private void ApplySavedHotkeys()
@@ -376,7 +400,7 @@ namespace Chigen.App.ViewModels
             if (_counterService.TryCountManual(cellTypeId))
             {
                 UpdateState();
-                StatusText = $"Counted: {cellTypeId}";
+                StatusText = $"{TranslationService.GetString("StatusCounted")}{cellTypeId}";
             }
         }
 
@@ -386,7 +410,7 @@ namespace Chigen.App.ViewModels
             if (_counterService.TryUndoManual(cellTypeId))
             {
                 UpdateState();
-                StatusText = $"Decremented: {cellTypeId}";
+                StatusText = $"{TranslationService.GetString("StatusDecremented")}{cellTypeId}";
             }
         }
 
@@ -434,3 +458,5 @@ namespace Chigen.App.ViewModels
         }
     }
 }
+
+

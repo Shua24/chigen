@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using PdfSharp.Drawing;
 using Chigen.Core.Models;
+using Chigen.Core.Services;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using A = DocumentFormat.OpenXml.Drawing;
 
@@ -26,7 +27,19 @@ namespace Chigen.DocumentExport
             mainPart.Document = new Document();
             var body = new Body();
 
+            var stylesPart = mainPart.AddNewPart<StyleDefinitionsPart>();
+            stylesPart.Styles = new Styles(
+                new DocDefaults(
+                    new ParagraphPropertiesDefault(
+                        new ParagraphProperties(
+                            new SpacingBetweenLines { Line = "240", LineRule = LineSpacingRuleValues.Auto, Before = "0", After = "0" }
+                        )
+                    )
+                )
+            );
+
             AddLetterhead(mainPart, body);
+            AddReportTitle(body);
             AddPatientInfo(body, patient, specimen);
             AddDifferentialTable(body, counterState);
             AddConclusion(body, patient.Conclusion);
@@ -58,6 +71,7 @@ namespace Chigen.DocumentExport
 
             body.Append(new Paragraph(
                 new Run(
+                    new RunProperties(new FontSize { Val = "24" }),
                     new Text(_letterhead.InstitutionName) { Space = SpaceProcessingModeValues.Preserve }
                 )
             )
@@ -71,7 +85,10 @@ namespace Chigen.DocumentExport
             if (!string.IsNullOrEmpty(_letterhead.Department))
             {
                 body.Append(new Paragraph(
-                    new Run(new Text(_letterhead.Department) { Space = SpaceProcessingModeValues.Preserve })
+                    new Run(
+                        new RunProperties(new FontSize { Val = "20" }),
+                        new Text(_letterhead.Department) { Space = SpaceProcessingModeValues.Preserve }
+                    )
                 )
                 {
                     ParagraphProperties = new ParagraphProperties(
@@ -85,30 +102,38 @@ namespace Chigen.DocumentExport
             if (!string.IsNullOrEmpty(addressLine))
             {
                 body.Append(new Paragraph(
-                    new Run(new Text(addressLine) { Space = SpaceProcessingModeValues.Preserve })
+                    new Run(
+                        new RunProperties(new FontSize { Val = "18" }),
+                        new Text(addressLine) { Space = SpaceProcessingModeValues.Preserve }
+                    )
                 )
                 {
                     ParagraphProperties = new ParagraphProperties(
+                        new ParagraphBorders(
+                            new BottomBorder { Val = BorderValues.Single, Size = 24, Space = 1 }
+                        ),
                         new Justification { Val = JustificationValues.Center },
-                        new SpacingBetweenLines { After = "200" }
+                        new SpacingBetweenLines { After = "20" }
                     )
                 });
             }
-
-            body.Append(new Paragraph(
-                new Run(new Text("HEMATOLOGY LABORATORY REPORT") { Space = SpaceProcessingModeValues.Preserve })
-            )
+            else
             {
-                ParagraphProperties = new ParagraphProperties(
-                    new Justification { Val = JustificationValues.Center },
-                    new SpacingBetweenLines { After = "400" }
-                )
-            });
+                body.Append(new Paragraph(
+                    new ParagraphProperties(
+                        new ParagraphBorders(
+                            new BottomBorder { Val = BorderValues.Single, Size = 24, Space = 1 }
+                        ),
+                        new SpacingBetweenLines { After = "20" }
+                    )
+                ));
+            }
         }
 
         private void AddLetterheadSide(MainDocumentPart mainPart, Body body)
         {
             var table = new Table();
+
             var tblProps = new TableProperties(
                 new TableBorders(
                     new TopBorder { Val = BorderValues.None },
@@ -198,7 +223,10 @@ namespace Chigen.DocumentExport
             textCell.Append(textCellProps);
 
             textCell.Append(new Paragraph(
-                new Run(new Text(_letterhead.InstitutionName) { Space = SpaceProcessingModeValues.Preserve })
+                new Run(
+                    new RunProperties(new FontSize { Val = "24" }),
+                    new Text(_letterhead.InstitutionName) { Space = SpaceProcessingModeValues.Preserve }
+                )
             )
             {
                 ParagraphProperties = new ParagraphProperties(
@@ -210,7 +238,10 @@ namespace Chigen.DocumentExport
             if (!string.IsNullOrEmpty(_letterhead.Department))
             {
                 textCell.Append(new Paragraph(
-                    new Run(new Text(_letterhead.Department) { Space = SpaceProcessingModeValues.Preserve })
+                    new Run(
+                        new RunProperties(new FontSize { Val = "20" }),
+                        new Text(_letterhead.Department) { Space = SpaceProcessingModeValues.Preserve }
+                    )
                 )
                 {
                     ParagraphProperties = new ParagraphProperties(
@@ -224,7 +255,10 @@ namespace Chigen.DocumentExport
             if (!string.IsNullOrEmpty(addressLine))
             {
                 textCell.Append(new Paragraph(
-                    new Run(new Text(addressLine) { Space = SpaceProcessingModeValues.Preserve })
+                    new Run(
+                        new RunProperties(new FontSize { Val = "18" }),
+                        new Text(addressLine) { Space = SpaceProcessingModeValues.Preserve }
+                    )
                 )
                 {
                     ParagraphProperties = new ParagraphProperties(
@@ -239,12 +273,24 @@ namespace Chigen.DocumentExport
             body.Append(table);
 
             body.Append(new Paragraph(
-                new Run(new Text("HEMATOLOGY LABORATORY REPORT") { Space = SpaceProcessingModeValues.Preserve })
+                new ParagraphProperties(
+                    new ParagraphBorders(
+                        new BottomBorder { Val = BorderValues.Single, Size = 24, Space = 1 }
+                    ),
+                    new SpacingBetweenLines { After = "20" }
+                )
+            ));
+        }
+
+        private void AddReportTitle(Body body)
+        {
+            body.Append(new Paragraph(
+                new Run(new Text(TranslationService.GetString("ReportTitle")) { Space = SpaceProcessingModeValues.Preserve })
             )
             {
                 ParagraphProperties = new ParagraphProperties(
                     new Justification { Val = JustificationValues.Center },
-                    new SpacingBetweenLines { After = "400" }
+                    new SpacingBetweenLines { After = "200" }
                 )
             });
         }
@@ -288,11 +334,10 @@ namespace Chigen.DocumentExport
 
                 return relationshipId;
             }
-            catch
+            catch (Exception ex)
             {
-                emuW = 1600000;
-                emuH = 600000;
-                return null;
+                throw new InvalidOperationException(
+                    $"Failed to load letterhead logo from '{logoPath}': {ex.Message}", ex);
             }
         }
 
@@ -315,7 +360,7 @@ namespace Chigen.DocumentExport
             var imageParagraph = new Paragraph(
                 new ParagraphProperties(
                     new Justification { Val = justification },
-                    new SpacingBetweenLines { After = "100" }
+                    new SpacingBetweenLines { After = "40" }
                 )
             );
 
@@ -372,38 +417,38 @@ namespace Chigen.DocumentExport
             string leftDob = _template.ShowPatientDob ? patient.DateOfBirth : "";
 
             if (_template.ShowPatientId && _template.ShowPatientDob)
-                rows.Add(("Patient ID", leftId, "Date of Birth", leftDob));
+                rows.Add((TranslationService.GetString("report_PatientId"), leftId, TranslationService.GetString("report_DateOfBirth"), leftDob));
             else if (_template.ShowPatientId)
-                rows.Add(("Patient ID", leftId, "", ""));
+                rows.Add((TranslationService.GetString("report_PatientId"), leftId, "", ""));
             else if (_template.ShowPatientDob)
-                rows.Add(("Date of Birth", leftDob, "", ""));
+                rows.Add((TranslationService.GetString("report_DateOfBirth"), leftDob, "", ""));
 
             if (_template.ShowPatientName || _template.ShowPatientPhysician)
-                rows.Add(("Patient Name", _template.ShowPatientName ? patient.Name : "", "Physician", _template.ShowPatientPhysician ? patient.Physician : ""));
+                rows.Add((TranslationService.GetString("report_PatientName"), _template.ShowPatientName ? patient.Name : "", TranslationService.GetString("report_Physician"), _template.ShowPatientPhysician ? patient.Physician : ""));
             else if (_template.ShowPatientName)
-                rows.Add(("Patient Name", patient.Name, "", ""));
+                rows.Add((TranslationService.GetString("report_PatientName"), patient.Name, "", ""));
             else if (_template.ShowPatientPhysician)
-                rows.Add(("Physician", patient.Physician, "", ""));
+                rows.Add((TranslationService.GetString("report_Physician"), patient.Physician, "", ""));
 
             if (_template.ShowPatientSex || _template.ShowPatientWard)
-                rows.Add(("Sex", _template.ShowPatientSex ? patient.Sex : "", "Ward", _template.ShowPatientWard ? patient.Ward : ""));
+                rows.Add((TranslationService.GetString("report_Sex"), _template.ShowPatientSex ? patient.Sex : "", TranslationService.GetString("report_Ward"), _template.ShowPatientWard ? patient.Ward : ""));
             else if (_template.ShowPatientSex)
-                rows.Add(("Sex", patient.Sex, "", ""));
+                rows.Add((TranslationService.GetString("report_Sex"), patient.Sex, "", ""));
             else if (_template.ShowPatientWard)
-                rows.Add(("Ward", patient.Ward, "", ""));
+                rows.Add((TranslationService.GetString("report_Ward"), patient.Ward, "", ""));
 
             if (_template.ShowPatientDiagnosis || _template.ShowPatientPaymentMethod)
-                rows.Add(("Diagnosis", _template.ShowPatientDiagnosis ? patient.Diagnosis : "", "Payment Method", _template.ShowPatientPaymentMethod ? patient.PaymentMethod : ""));
+                rows.Add((TranslationService.GetString("report_Diagnosis"), _template.ShowPatientDiagnosis ? patient.Diagnosis : "", TranslationService.GetString("report_PaymentMethod"), _template.ShowPatientPaymentMethod ? patient.PaymentMethod : ""));
             else if (_template.ShowPatientDiagnosis)
-                rows.Add(("Diagnosis", patient.Diagnosis, "", ""));
+                rows.Add((TranslationService.GetString("report_Diagnosis"), patient.Diagnosis, "", ""));
             else if (_template.ShowPatientPaymentMethod)
-                rows.Add(("Payment Method", patient.PaymentMethod, "", ""));
+                rows.Add((TranslationService.GetString("report_PaymentMethod"), patient.PaymentMethod, "", ""));
 
             if (_template.ShowPatientAddress)
-                rows.Add(("Address", patient.Address, "Collection Date", specimen.CollectionDate));
+                rows.Add((TranslationService.GetString("report_Address"), patient.Address, TranslationService.GetString("report_CollectionDate"), specimen.CollectionDate));
 
-            rows.Add(("", "", "Specimen", specimen.Type));
-            rows.Add(("", "", "Received", specimen.ReceivedDate));
+            rows.Add(("", "", TranslationService.GetString("report_Specimen"), specimen.Type));
+            rows.Add(("", "", TranslationService.GetString("report_Received"), specimen.ReceivedDate));
 
             var table = new Table();
             var props = new TableProperties(
@@ -438,7 +483,9 @@ namespace Chigen.DocumentExport
 
         private static TableCell CreateCell(string text, bool bold, int width)
         {
-            var runProps = new RunProperties();
+            var runProps = new RunProperties(
+                new FontSize { Val = "16" }
+            );
             if (bold) runProps.Append(new Bold());
 
             var cell = new TableCell(
@@ -447,7 +494,7 @@ namespace Chigen.DocumentExport
                     new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Center }
                 ),
                 new Paragraph(
-                    new ParagraphProperties(new SpacingBetweenLines { Before = "40", After = "40" }),
+                    new ParagraphProperties(new SpacingBetweenLines { Before = "0", After = "0" }),
                     new Run(runProps, new Text(text) { Space = SpaceProcessingModeValues.Preserve })
                 )
             );
@@ -457,12 +504,15 @@ namespace Chigen.DocumentExport
         private void AddDifferentialTable(Body body, CounterState counterState)
         {
             body.Append(new Paragraph(
-                new Run(new Text("CELL DIFFERENTIAL COUNT") { Space = SpaceProcessingModeValues.Preserve })
+                new Run(
+                    new RunProperties(new FontSize { Val = "20" }),
+                    new Text(TranslationService.GetString("CellDifferentialCount")) { Space = SpaceProcessingModeValues.Preserve }
+                )
             )
             {
                 ParagraphProperties = new ParagraphProperties(
                     new Justification { Val = JustificationValues.Center },
-                    new SpacingBetweenLines { Before = "200", After = "200" }
+                    new SpacingBetweenLines { Before = "40", After = "40" }
                 )
             });
 
@@ -482,12 +532,12 @@ namespace Chigen.DocumentExport
 
             var headerRow = new TableRow();
             headerRow.Append(
-                CreateHeaderCell("Cell Type"),
-                CreateHeaderCell("Count"),
-                CreateHeaderCell("%")
+                CreateHeaderCell(TranslationService.GetString("ColCellType")),
+                CreateHeaderCell(TranslationService.GetString("ColCount")),
+                CreateHeaderCell(TranslationService.GetString("ColPercent"))
             );
             if (_template.ShowReferenceRanges)
-                headerRow.Append(CreateHeaderCell("Ref Range"));
+                headerRow.Append(CreateHeaderCell(TranslationService.GetString("ColRefRange")));
 
             table.Append(headerRow);
 
@@ -506,7 +556,7 @@ namespace Chigen.DocumentExport
 
             var totalRow = new TableRow();
             totalRow.Append(
-                CreateCell("TOTAL", true, 2500),
+                CreateCell(TranslationService.GetString("Total"), true, 2500),
                 CreateCell(counterState.Total.ToString(), true, 1000),
                 CreateCell("100%", true, 1000)
             );
@@ -528,9 +578,9 @@ namespace Chigen.DocumentExport
                 new Paragraph(
                     new ParagraphProperties(
                         new Justification { Val = JustificationValues.Center },
-                        new SpacingBetweenLines { Before = "60", After = "60" }
+                        new SpacingBetweenLines { Before = "20", After = "20" }
                     ),
-                    new Run(new RunProperties(new Bold()), new Text(text) { Space = SpaceProcessingModeValues.Preserve })
+                    new Run(new RunProperties(new Bold(), new FontSize { Val = "18" }), new Text(text) { Space = SpaceProcessingModeValues.Preserve })
                 )
             );
         }
@@ -541,14 +591,14 @@ namespace Chigen.DocumentExport
 
             body.Append(new Paragraph(new Run(new Text("") { Space = SpaceProcessingModeValues.Preserve })));
             body.Append(new Paragraph(
-                new Run(new RunProperties(new Bold()), new Text("Conclusion / Interpretation:") { Space = SpaceProcessingModeValues.Preserve })
+                new Run(new RunProperties(new Bold(), new FontSize { Val = "18" }), new Text(TranslationService.GetString("ConclusionInterpretation")) { Space = SpaceProcessingModeValues.Preserve })
             ));
 
-            var commentText = string.IsNullOrEmpty(Conclusion) ? "No abnormalities detected." : Conclusion;
+            var commentText = string.IsNullOrEmpty(Conclusion) ? TranslationService.GetString("NoAbnormalities") : Conclusion;
 
             body.Append(new Paragraph(
-                new ParagraphProperties(new SpacingBetweenLines { Before = "100", After = "100" }),
-                new Run(new Text(commentText) { Space = SpaceProcessingModeValues.Preserve })
+                new ParagraphProperties(new SpacingBetweenLines { Before = "20", After = "20" }),
+                new Run(new RunProperties(new FontSize { Val = "18" }), new Text(commentText) { Space = SpaceProcessingModeValues.Preserve })
             ));
         }
 
@@ -557,12 +607,12 @@ namespace Chigen.DocumentExport
             if (string.IsNullOrEmpty(recommendations)) return;
 
             body.Append(new Paragraph(
-                new Run(new RunProperties(new Bold()), new Text("Recommendations:") { Space = SpaceProcessingModeValues.Preserve })
+                new Run(new RunProperties(new Bold(), new FontSize { Val = "18" }), new Text(TranslationService.GetString("RecommendationsLabel")) { Space = SpaceProcessingModeValues.Preserve })
             ));
 
             body.Append(new Paragraph(
-                new ParagraphProperties(new SpacingBetweenLines { Before = "100", After = "100" }),
-                new Run(new Text(recommendations) { Space = SpaceProcessingModeValues.Preserve })
+                new ParagraphProperties(new SpacingBetweenLines { Before = "20", After = "20" }),
+                new Run(new RunProperties(new FontSize { Val = "18" }), new Text(recommendations) { Space = SpaceProcessingModeValues.Preserve })
             ));
         }
 
@@ -580,21 +630,24 @@ namespace Chigen.DocumentExport
 
             body.Append(new Paragraph(
                 borderProps,
-                new Run(new Text($"Report generated: {DateTime.Now:yyyy-MM-dd HH:mm}") { Space = SpaceProcessingModeValues.Preserve })
+                new Run(new RunProperties(new FontSize { Val = "16" }), new Text($"{TranslationService.GetString("ReportGenerated")} {DateTime.Now:yyyy-MM-dd HH:mm}") { Space = SpaceProcessingModeValues.Preserve })
             ));
 
             if (!string.IsNullOrEmpty(_letterhead.FooterText))
             {
                 body.Append(new Paragraph(
-                    new Run(new Text(_letterhead.FooterText) { Space = SpaceProcessingModeValues.Preserve })
+                    new Run(new RunProperties(new FontSize { Val = "16" }), new Text(_letterhead.FooterText) { Space = SpaceProcessingModeValues.Preserve })
                 ));
             }
 
             body.Append(new Paragraph(
-                new Run(new Text("___________________________________") { Space = SpaceProcessingModeValues.Preserve })
+                new ParagraphProperties(new SpacingBetweenLines { Before = "0", After = "0" }),
+                new Run(new RunProperties(new FontSize { Val = "16" }), new Text("___________________________________") { Space = SpaceProcessingModeValues.Preserve })
             ));
+
             body.Append(new Paragraph(
-                new Run(new Text("Pathologist Signature") { Space = SpaceProcessingModeValues.Preserve })
+                new ParagraphProperties(new SpacingBetweenLines { Before = "0", After = "0" }),
+                new Run(new RunProperties(new FontSize { Val = "16" }), new Text(TranslationService.GetString("PathologistSignature")) { Space = SpaceProcessingModeValues.Preserve })
             ));
         }
 

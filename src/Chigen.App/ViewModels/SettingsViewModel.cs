@@ -118,22 +118,48 @@ namespace Chigen.App.ViewModels
             set { _config.LogoPlacement = value; OnPropertyChanged(); }
         }
 
-        public static List<KeyValuePair<string, LogoPlacement>> LogoPlacementOptions { get; } =
+        private string _selectedLanguage;
+        public string SelectedLanguage
+        {
+            get => _selectedLanguage;
+            set { _selectedLanguage = value; OnPropertyChanged(); }
+        }
+
+        public List<KeyValuePair<string, LogoPlacement>> LogoPlacementOptions
+        {
+            get
+            {
+                var t = Chigen.Core.Services.TranslationService.GetString;
+                return
+                [
+                    new(t("LogoTop"), LogoPlacement.Top),
+                    new(t("LogoSide"), LogoPlacement.Side)
+                ];
+            }
+        }
+
+        public static List<KeyValuePair<string, string>> LanguageOptions { get; } =
         [
-            new("Top (centered above text)", LogoPlacement.Top),
-            new("Side (aligned left of text)", LogoPlacement.Side)
+            new("English", "en"),
+            new("Bahasa Indonesia", "id")
         ];
 
         public SettingsViewModel()
         {
             _config = TemplateService.LoadLetterhead();
             _template = TemplateService.LoadTemplate();
+            _selectedLanguage = TranslationService.CurrentLanguage;
+            TranslationService.LanguageChanged += () =>
+            {
+                OnPropertyChanged(nameof(LogoPlacementOptions));
+            };
         }
 
         public void Save()
         {
             TemplateService.SaveLetterhead(_config);
             TemplateService.SaveTemplate(_template);
+            TemplateService.SaveLanguage(SelectedLanguage);
         }
 
         public void BrowseLogo()

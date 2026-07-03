@@ -1,4 +1,5 @@
-﻿using System.Windows;
+using System.Windows;
+using Chigen.Core.Services;
 
 namespace Chigen.App;
 
@@ -14,6 +15,10 @@ public partial class App : Application
             Shutdown();
             return;
         }
+
+        // Restore saved language preference
+        var savedLang = TemplateService.LoadLanguage();
+        TranslationService.CurrentLanguage = savedLang;
 
         base.OnStartup(e);
     }
