@@ -68,13 +68,17 @@ jobs:
         else { echo "No signing certificate configured; installer will be unsigned." }
       continue-on-error: true
 
-    - name: Upload build artifacts
+    - name: Upload installer
       uses: actions/upload-artifact@v4
       with:
-        name: Chigen-Setup
-        path: |
-          installer-output\*.exe
-          Chigen-Portable-*.zip
+        name: Chigen-Installer
+        path: installer-output/*.exe
+
+    - name: Upload portable ZIP
+      uses: actions/upload-artifact@v4
+      with:
+        name: Chigen-Portable
+        path: Chigen-Portable-*.zip
 
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -83,11 +87,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Chigen-Setup
-          path: Chigen-Setup
+          path: Chigen-Release
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -115,7 +118,7 @@ jobs:
             - `Chigen-Setup-*.exe` -- Inno Setup installer (requires admin)
             - `Chigen-Portable-*.zip` -- Portable version (extract and run, no admin needed)
           files: |
-            Chigen-Setup/*.exe
-            Chigen-Setup/*.zip
+            Chigen-Release/Chigen-Installer/*.exe
+            Chigen-Release/Chigen-Portable/*.zip
           draft: false
           prerelease: false
