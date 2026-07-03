@@ -33,10 +33,16 @@ Instead of clicking a hand tally counter and writing reports by hand, you press 
 ### Option 1: Installer (recommended)
 Download `Chigen-Setup-1.0.xxxx.exe` and run it. The installer places Chigen in `%ProgramFiles%\Chigen` and adds a Start Menu shortcut. Uninstall via Windows **Add or Remove Programs**.
 
-The installer is code-signed via [SignPath Foundation](https://signpath.io/foundation) — no SmartScreen warning.
+> **⚠️ SmartScreen notice:** The installer is unsigned. Windows may show **"Windows protected your PC"** when you run it.
+> Click **More info** → **Run anyway** to proceed.
+>
+> If you see **"Windows could not find the file specified"**, Windows Defender may have quarantined extracted files.
+> Temporarily disable Real-time Protection before installing, or use the **Portable ZIP** instead.
+>
+> You can also right-click the downloaded `.exe` → **Properties** → check **Unblock** → **OK** before running.
 
 ### Option 2: Portable ZIP (no install)
-Download `Chigen-Portable-xxxx.zip`, extract to any folder, and run `Chigen.exe`. No admin rights needed.
+Download `Chigen-Portable-xxxx.zip`, extract to any folder, and run `Chigen.exe`. No admin rights needed. No SmartScreen warning.
 
 ## Quick start
 
