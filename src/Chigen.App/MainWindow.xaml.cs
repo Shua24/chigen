@@ -1,9 +1,10 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using Chigen.App.ViewModels;
 using Chigen.App.Views;
 using Chigen.Core.Models;
 using Chigen.DocumentExport;
+using PdfSharp.Fonts;
 
 namespace Chigen.App;
 
@@ -13,18 +14,10 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        GlobalFontSettings.FontResolver = new ChigenFontResolver();
         InitializeComponent();
         _viewModel = new CounterViewModel();
         DataContext = _viewModel;
-
-        CheckWordAvailability();
-    }
-
-    private void CheckWordAvailability()
-    {
-        var method = PdfConverter.CheckAvailability();
-        _viewModel.PdfMethod = method;
-        _viewModel.IsWordAvailable = method == PdfConversionMethod.WordInterop;
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)

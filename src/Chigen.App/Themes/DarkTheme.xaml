@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- Window & Surface Colors -->
     <SolidColorBrush x:Key="WindowBgBrush" Color="#0F172A"/>
@@ -42,4 +42,7 @@
     <SolidColorBrush x:Key="WarningBgBrush" Color="#451A03"/>
     <SolidColorBrush x:Key="WarningBorderBrush" Color="#78350F"/>
     <SolidColorBrush x:Key="WarningFgBrush" Color="#FDE68A"/>
+    <!-- Dropdown -->
+    <SolidColorBrush x:Key="DropdownItemHoverBrush" Color="#1E3A5F"/>
+    <SolidColorBrush x:Key="DropdownItemSelectedBrush" Color="#0D1323"/>
 </ResourceDictionary>
