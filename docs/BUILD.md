@@ -1,9 +1,9 @@
-# Building Chigen from Source
+﻿# Building Chigen from Source
 
 ## Prerequisites
 
-- **Windows** (7, 8, 10, or 11) — required because the app is WPF-based
-- **.NET 8 SDK** — download from [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/8.0)
+- **Windows** (7, 8, 10, or 11) -- required because the app is WPF-based
+- **.NET 8 SDK** -- download from [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/8.0)
 - Optional: **Visual Studio 2022** (any edition) or **JetBrains Rider** for IDE support
 
 ## Quick start
@@ -61,11 +61,11 @@ dotnet publish src/Chigen.App/Chigen.App.csproj \
 ## Project dependencies
 
 ```
-Chigen.App ──> Chigen.Core
-Chigen.App ──> Chigen.DocumentExport
-Chigen.DocumentExport ──> Chigen.Core
-Chigen.Tests ──> Chigen.Core
-Chigen.Tests ──> Chigen.DocumentExport
+Chigen.App --> Chigen.Core
+Chigen.App --> Chigen.DocumentExport
+Chigen.DocumentExport --> Chigen.Core
+Chigen.Tests --> Chigen.Core
+Chigen.Tests --> Chigen.DocumentExport
 ```
 
 ## Target frameworks

@@ -1,4 +1,4 @@
-# Chigen — Cell Differential Counter & Report Generator
+﻿# Chigen -- Cell Differential Counter & Report Generator
 
 > **Critical Note:** This project is still under development and is **not ready for production use yet**. It is intended for educational purposes only. Please use with caution and always verify critical results.
 
@@ -8,7 +8,7 @@ This app is developed with GNU General Public License v2.0 due to the need for m
 
 Chigen is a desktop app for **hematology laboratories** that helps lab professionals count white blood cells under a microscope and automatically generate ready-to-print medical reports.
 
-Instead of clicking a manual tally counter, you press keys on your keyboard — each key maps to a different cell type. The app keeps track of every count, calculates the percentages, and when you're done, produces a professional Word document or PDF with all the results.
+Instead of clicking a manual tally counter, you press keys on your keyboard -- each key maps to a different cell type. The app keeps track of every count, calculates the percentages, and when you're done, produces a professional Word document or PDF with all the results.
 
 ## What problem does it solve?
 
@@ -18,35 +18,35 @@ Chigen replaces that whole process: count with your keyboard, generate the repor
 
 ## How to use it
 
-1. **Launch the app** — A window asks for patient details (name, ID, etc.). You can skip this if you just want to practice.
-2. **Start counting** — Press `1` for Neutrophil, `2` for Lymphocyte, `3` for Monocyte… and so on. The table updates instantly.
-3. **Switch sample type** — Use the "Peripheral Blood" or "Bone Marrow" radio buttons depending on what you're examining. Bone Marrow mode adds extra cell types on keys `A` through `E`.
-4. **Generate a report** — Click **Generate DOCX** or **Export PDF**, pick where to save it, and you're done. The report includes patient info, the full count table, and any notes you added.
+1. **Launch the app** -- A window asks for patient details (name, ID, etc.). You can skip this if you just want to practice.
+2. **Start counting** -- Press `1` for Neutrophil, `2` for Lymphocyte, `3` for Monocyte… and so on. The table updates instantly.
+3. **Switch sample type** -- Use the "Peripheral Blood" or "Bone Marrow" radio buttons depending on what you're examining. Bone Marrow mode adds extra cell types on keys `A` through `E`.
+4. **Generate a report** -- Click **Generate DOCX** or **Export PDF**, pick where to save it, and you're done. The report includes patient info, the full count table, and any notes you added.
 
 ## Features at a glance
 
-- **Count with your keyboard** — Keys `0`–`9` for Peripheral Blood, plus `A`–`E` for Bone Marrow. No mouse needed.
-- **Real-time percentages** — Every count updates the percentages immediately.
-- **Undo mistakes** — Press `Delete` or `Backspace` to undo the last count.
-- **Manual adjustments** — Click the `+` or `–` buttons next to any cell type to fine-tune.
-- **Reference ranges** — Each cell type shows its normal range (e.g. "40–80") as a quick reference.
-- **Patient information** — Enter name, ID, date of birth, diagnosis, address, physician, ward, and payment method. Any field can be turned off in Settings if you don't need it.
-- **Conclusion & Recommendations** — Add free-text notes that will appear in the final report.
-- **Professional reports** — Generate Word documents (.docx) or PDFs with your lab's letterhead, the differential table, reference ranges, and your notes.
-- **Custom keyboard shortcuts** — Don't like the default key mappings? Change them in the Hotkey settings.
-- **Lab letterhead** — Add your institution name, logo, address, and footer. The logo can sit beside or above the text.
+- **Count with your keyboard** -- Keys `0`-`9` for Peripheral Blood, plus `A`-`E` for Bone Marrow. No mouse needed.
+- **Real-time percentages** -- Every count updates the percentages immediately.
+- **Undo mistakes** -- Press `Delete` or `Backspace` to undo the last count.
+- **Manual adjustments** -- Click the `+` or `-` buttons next to any cell type to fine-tune.
+- **Reference ranges** -- Each cell type shows its normal range (e.g. "40-80") as a quick reference.
+- **Patient information** -- Enter name, ID, date of birth, diagnosis, address, physician, ward, and payment method. Any field can be turned off in Settings if you don't need it.
+- **Conclusion & Recommendations** -- Add free-text notes that will appear in the final report.
+- **Professional reports** -- Generate Word documents (.docx) or PDFs with your lab's letterhead, the differential table, reference ranges, and your notes.
+- **Custom keyboard shortcuts** -- Don't like the default key mappings? Change them in the Hotkey settings.
+- **Lab letterhead** -- Add your institution name, logo, address, and footer. The logo can sit beside or above the text.
 
 ## The screen layout
 
 When you open Chigen, here's what you'll see from top to bottom:
 
-- **Title bar** — App name and a status message ("Ready", "Counted: Neutrophil", etc.)
-- **Patient badge** — Shows the current patient's name (hidden if you've disabled all patient fields in Settings). Click "Edit" to change it.
-- **Mode & date** — Switch between Peripheral Blood / Bone Marrow. Today's date is shown.
-- **The count table** — One row per cell type. Each row shows: the keyboard key (blue badge), cell name, count, percentage, reference range, and +/- buttons.
-- **Total bar** — Grand total of all counts, always at 100%.
-- **Action buttons** — Generate DOCX, Export PDF, Undo, Reset, Conclusion, Recommendations, Hotkeys, Settings.
-- **Shortcut hints** — A bar at the bottom lists all the keyboard shortcuts.
+- **Title bar** -- App name and a status message ("Ready", "Counted: Neutrophil", etc.)
+- **Patient badge** -- Shows the current patient's name (hidden if you've disabled all patient fields in Settings). Click "Edit" to change it.
+- **Mode & date** -- Switch between Peripheral Blood / Bone Marrow. Today's date is shown.
+- **The count table** -- One row per cell type. Each row shows: the keyboard key (blue badge), cell name, count, percentage, reference range, and +/- buttons.
+- **Total bar** -- Grand total of all counts, always at 100%.
+- **Action buttons** -- Generate DOCX, Export PDF, Undo, Reset, Conclusion, Recommendations, Hotkeys, Settings.
+- **Shortcut hints** -- A bar at the bottom lists all the keyboard shortcuts.
 
 ## Settings you can change
 
@@ -64,8 +64,8 @@ Click **Settings** on the main screen:
 
 | Key | What it does |
 |-----|-------------|
-| `0`–`9` | Count the assigned cell type |
-| `A`–`E` | Count extra cell types (Bone Marrow mode only) |
+| `0`-`9` | Count the assigned cell type |
+| `A`-`E` | Count extra cell types (Bone Marrow mode only) |
 | `Delete` / `Backspace` | Undo last count |
 | `R` | Reset all counts (asks "are you sure?") |
 | `Ctrl+Z` | Undo (same as Delete) |
@@ -81,7 +81,7 @@ Before you install this app, the contributor(s) of this project would like to le
 ## What you need to run it
 
 - A **Windows computer** (7, 8, 10, or 11)
-- For PDFs via Word: **Microsoft Word** installed (any recent version). If Word isn't available, Chigen switches to a built-in PDF generator automatically — no extra software needed.
+- For PDFs via Word: **Microsoft Word** installed (any recent version). If Word isn't available, Chigen switches to a built-in PDF generator automatically -- no extra software needed.
 
 ---
 
