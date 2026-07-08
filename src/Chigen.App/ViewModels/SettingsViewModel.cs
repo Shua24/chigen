@@ -1,11 +1,10 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Chigen.Core.Models;
+﻿using Chigen.Core.Models;
 using Chigen.Core.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Chigen.App.ViewModels
 {
-    public class SettingsViewModel : INotifyPropertyChanged
+    public partial class SettingsViewModel : ObservableObject
     {
         private LetterheadConfig _config;
         private DocumentTemplate _template;
@@ -118,12 +117,8 @@ namespace Chigen.App.ViewModels
             set { _config.LogoPlacement = value; OnPropertyChanged(); }
         }
 
-        private string _selectedLanguage;
-        public string SelectedLanguage
-        {
-            get => _selectedLanguage;
-            set { _selectedLanguage = value; OnPropertyChanged(); }
-        }
+        [ObservableProperty]
+        private string _selectedLanguage = "en";
 
         private string _selectedTheme = "Light";
         public string SelectedTheme
@@ -150,7 +145,7 @@ namespace Chigen.App.ViewModels
         {
             get
             {
-                var t = Chigen.Core.Services.TranslationService.GetString;
+                var t = TranslationService.GetString;
                 return
                 [
                     new(t("LogoTop"), LogoPlacement.Top),
@@ -196,13 +191,6 @@ namespace Chigen.App.ViewModels
             {
                 LogoPath = dialog.FileName;
             }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -1,12 +1,11 @@
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using System.Collections.ObjectModel;
 using Chigen.Core.Models;
 using Chigen.Core.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Chigen.App.ViewModels
 {
-    public class HotkeySettingsViewModel : INotifyPropertyChanged
+    public partial class HotkeySettingsViewModel : ObservableObject
     {
         public ObservableCollection<HotkeySettingsItem> PbItems { get; } = [];
         public ObservableCollection<HotkeySettingsItem> BmItems { get; } = [];
@@ -35,19 +34,11 @@ namespace Chigen.App.ViewModels
             }
         }
 
+        [ObservableProperty]
         private string _statusText = "";
-        public string StatusText
-        {
-            get => _statusText;
-            set { _statusText = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private int _selectedTab;
-        public int SelectedTab
-        {
-            get => _selectedTab;
-            set { _selectedTab = value; OnPropertyChanged(); }
-        }
 
         public HotkeySettingsViewModel()
         {
@@ -164,13 +155,6 @@ namespace Chigen.App.ViewModels
                 });
             }
             TemplateService.SaveHotkeyMappings(mappings);
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

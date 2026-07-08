@@ -1,17 +1,16 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Chigen.Core.Models;
 using Chigen.Core.Services;
 using Chigen.DocumentExport;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace Chigen.App.ViewModels
 {
-    public class CounterViewModel : INotifyPropertyChanged
+    public partial class CounterViewModel : ObservableObject
     {
         private readonly CounterService _counterService = new();
 
@@ -32,82 +31,40 @@ namespace Chigen.App.ViewModels
             UpdateState();
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(PatientDisplay))]
         private string _patientName = "";
-        public string PatientName
-        {
-            get => _patientName;
-            set { _patientName = value; OnPropertyChanged(); OnPropertyChanged(nameof(PatientDisplay)); }
-        }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(PatientDisplay))]
         private string _patientId = "";
-        public string PatientId
-        {
-            get => _patientId;
-            set { _patientId = value; OnPropertyChanged(); OnPropertyChanged(nameof(PatientDisplay)); }
-        }
 
+        [ObservableProperty]
         private string _patientDob = "";
-        public string PatientDob
-        {
-            get => _patientDob;
-            set { _patientDob = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _patientSex = "";
-        public string PatientSex
-        {
-            get => _patientSex;
-            set { _patientSex = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _patientDiagnosis = "";
-        public string PatientDiagnosis
-        {
-            get => _patientDiagnosis;
-            set { _patientDiagnosis = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _patientAddress = "";
-        public string PatientAddress
-        {
-            get => _patientAddress;
-            set { _patientAddress = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _physician = "";
-        public string Physician
-        {
-            get => _physician;
-            set { _physician = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _ward = "";
-        public string Ward
-        {
-            get => _ward;
-            set { _ward = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _paymentMethod = "";
-        public string PaymentMethod
-        {
-            get => _paymentMethod;
-            set { _paymentMethod = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _Conclusion = "";
-        public string Conclusion
-        {
-            get => _Conclusion;
-            set { _Conclusion = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _Recommendations = "";
-        public string Recommendations
-        {
-            get => _Recommendations;
-            set { _Recommendations = value; OnPropertyChanged(); }
-        }
 
         public string PatientDisplay
         {
@@ -124,12 +81,8 @@ namespace Chigen.App.ViewModels
 
         public string SpecimenDate => DateTime.Now.ToString("yyyy-MM-dd");
 
+        [ObservableProperty]
         private int _totalCount;
-        public int TotalCount
-        {
-            get => _totalCount;
-            set { _totalCount = value; OnPropertyChanged(); }
-        }
 
         private CounterMode _currentMode = CounterMode.PeripheralBlood;
         public CounterMode CurrentMode
@@ -181,40 +134,32 @@ namespace Chigen.App.ViewModels
             OnPropertyChanged(nameof(CurrentThemeLabel));
         }
 
+        [ObservableProperty]
         private string _statusText;
-        public string StatusText
-        {
-            get => _statusText;
-            set { _statusText = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private bool _canUndo;
-        public bool CanUndo
-        {
-            get => _canUndo;
-            set { _canUndo = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private bool _canExport;
-        public bool CanExport
-        {
-            get => _canExport;
-            set { _canExport = value; OnPropertyChanged(); }
-        }
 
         public ICommand IncrementCommand => new RelayCommand<string>(IncrementCount);
         public ICommand DecrementCommand => new RelayCommand<string>(DecrementCount);
-        public ICommand GenerateDocxCommand => new RelayCommand(HandleGenerateDocx);
-        public ICommand ExportPdfCommand => new RelayCommand(HandleExportPdf);
-        public ICommand ResetCommand => new RelayCommand(HandleReset);
-        public ICommand UndoCommand => new RelayCommand(HandleUndo);
 
+        [RelayCommand]
+        private void GenerateDocx() => HandleGenerateDocx();
+
+        [RelayCommand]
+        private void ExportPdf() => HandleExportPdf();
+
+        [RelayCommand]
+        private void Reset() => HandleReset();
+
+        [RelayCommand]
+        private void Undo() => HandleUndo();
+
+        [ObservableProperty]
         private bool _hasPatientInfo = true;
-        public bool HasPatientInfo
-        {
-            get => _hasPatientInfo;
-            set { _hasPatientInfo = value; OnPropertyChanged(); }
-        }
 
         public void HandleReset()
         {
@@ -434,9 +379,9 @@ namespace Chigen.App.ViewModels
             }
         }
 
-        public Views.PatientInfo GetPatientInfo()
+        public Core.Models.PatientInfo GetPatientInfo()
         {
-            return new Views.PatientInfo
+            return new Core.Models.PatientInfo
             {
                 Name = PatientName,
                 Id = PatientId,
@@ -450,7 +395,7 @@ namespace Chigen.App.ViewModels
             };
         }
 
-        public void SetPatientInfo(Views.PatientInfo info)
+        public void SetPatientInfo(Core.Models.PatientInfo info)
         {
             PatientName = info.Name;
             PatientId = info.Id;
@@ -468,13 +413,6 @@ namespace Chigen.App.ViewModels
             TotalCount = _counterService.State.Total;
             CanUndo = _counterService.State.UndoStack.Count > 0;
             CanExport = TotalCount > 0;
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

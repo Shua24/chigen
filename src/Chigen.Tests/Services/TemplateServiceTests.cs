@@ -1,5 +1,4 @@
-using System.Text.Json;
-using Chigen.Core.Models;
+﻿using Chigen.Core.Models;
 using Chigen.Core.Services;
 
 namespace Chigen.Tests.Services
@@ -10,17 +9,18 @@ namespace Chigen.Tests.Services
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Chigen");
 
+        private static readonly string ConfigPath = Path.Combine(ConfigFolder, "config.json");
+
         public TemplateServiceTests()
         {
             Directory.CreateDirectory(ConfigFolder);
+            // Start each test with no config file
+            if (File.Exists(ConfigPath)) File.Delete(ConfigPath);
         }
 
         [Fact]
         public void LoadLetterhead_ReturnsDefault_WhenFileMissing()
         {
-            var letterheadPath = Path.Combine(ConfigFolder, "letterhead.json");
-            if (File.Exists(letterheadPath)) File.Delete(letterheadPath);
-
             var config = TemplateService.LoadLetterhead();
             Assert.Equal("My Hospital", config.InstitutionName);
         }
@@ -56,9 +56,6 @@ namespace Chigen.Tests.Services
         [Fact]
         public void LoadTemplate_ReturnsDefault_WhenFileMissing()
         {
-            var templatePath = Path.Combine(ConfigFolder, "templates.json");
-            if (File.Exists(templatePath)) File.Delete(templatePath);
-
             var template = TemplateService.LoadTemplate();
             Assert.Equal("Default", template.Name);
             Assert.True(template.ShowLetterhead);
@@ -89,46 +86,23 @@ namespace Chigen.Tests.Services
         }
 
         [Fact]
-        public void LoadTemplate_WithSpecificName_ReturnsCorrectTemplate()
+        public void SaveAndLoadLanguage_PersistsCorrectly()
         {
-            var t1 = new DocumentTemplate { Name = "A", HeaderFormat = "Format A" };
-            var t2 = new DocumentTemplate { Name = "B", HeaderFormat = "Format B" };
-
-            TemplateService.SaveTemplate(t1);
-            TemplateService.SaveTemplate(t2);
-
-            var loaded = TemplateService.LoadTemplate("A");
-            Assert.Equal("Format A", loaded.HeaderFormat);
+            TemplateService.SaveLanguage("id");
+            Assert.Equal("id", TemplateService.LoadLanguage());
         }
 
         [Fact]
-        public void LoadTemplate_WithUnknownName_ReturnsDefault()
+        public void SaveAndLoadTheme_PersistsCorrectly()
         {
-            var loaded = TemplateService.LoadTemplate("NonExistent");
-            Assert.Equal("Default", loaded.Name);
+            TemplateService.SaveTheme("Dark");
+            Assert.Equal("Dark", TemplateService.LoadTheme());
         }
 
         [Fact]
-        public void SaveTemplate_UpdatesExisting()
+        public void LoadHotkeyMappings_ReturnsDefaults_WhenEmpty()
         {
-            var t = new DocumentTemplate { Name = "Updatable", HeaderFormat = "V1" };
-            TemplateService.SaveTemplate(t);
-
-            t.HeaderFormat = "V2";
-            TemplateService.SaveTemplate(t);
-
-            var loaded = TemplateService.LoadTemplate("Updatable");
-            Assert.Equal("V2", loaded.HeaderFormat);
-        }
-
-        [Fact]
-        public void LoadHotkeyMappings_ReturnsDefaults_WhenFileMissing()
-        {
-            var hotkeyPath = Path.Combine(ConfigFolder, "hotkeys.json");
-            if (File.Exists(hotkeyPath)) File.Delete(hotkeyPath);
-
             var mappings = TemplateService.LoadHotkeyMappings();
-
             Assert.NotEmpty(mappings);
             var pbMappings = mappings.Where(m => m.Mode == CounterMode.PeripheralBlood).ToList();
             var bmMappings = mappings.Where(m => m.Mode == CounterMode.BoneMarrow).ToList();
@@ -160,35 +134,21 @@ namespace Chigen.Tests.Services
         }
 
         [Fact]
-        public void LoadLetterhead_ReturnsDefault_WhenFileCorrupt()
+        public void LoadConfig_ReturnsDefault_WhenFileCorrupt()
         {
-            var letterheadPath = Path.Combine(ConfigFolder, "letterhead.json");
-            File.WriteAllText(letterheadPath, "not valid json");
+            File.WriteAllText(ConfigPath, "not valid json");
 
             var config = TemplateService.LoadLetterhead();
             Assert.Equal("My Hospital", config.InstitutionName);
         }
 
         [Fact]
-        public void LoadTemplate_ReturnsDefault_WhenFileCorrupt()
+        public void SaveConfig_CreatesFileWhenNotExists()
         {
-            var templatePath = Path.Combine(ConfigFolder, "templates.json");
-            File.WriteAllText(templatePath, "not valid json");
-
-            var template = TemplateService.LoadTemplate();
-            Assert.Equal("Default", template.Name);
-        }
-
-        [Fact]
-        public void SaveTemplate_CreatesFileWhenNotExists()
-        {
-            var templatePath = Path.Combine(ConfigFolder, "templates.json");
-            if (File.Exists(templatePath)) File.Delete(templatePath);
-
             var t = new DocumentTemplate { Name = "NewTemplate" };
             TemplateService.SaveTemplate(t);
 
-            Assert.True(File.Exists(templatePath));
+            Assert.True(File.Exists(ConfigPath));
             var loaded = TemplateService.LoadTemplate("NewTemplate");
             Assert.Equal("NewTemplate", loaded.Name);
         }
@@ -197,16 +157,7 @@ namespace Chigen.Tests.Services
         {
             try
             {
-                var testFiles = new[]
-                {
-                    Path.Combine(ConfigFolder, "letterhead.json"),
-                    Path.Combine(ConfigFolder, "templates.json"),
-                    Path.Combine(ConfigFolder, "hotkeys.json")
-                };
-                foreach (var f in testFiles)
-                {
-                    if (File.Exists(f)) File.Delete(f);
-                }
+                if (File.Exists(ConfigPath)) File.Delete(ConfigPath);
             }
             catch { }
         }

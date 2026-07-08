@@ -503,3 +503,40 @@ Then pass from the workflow:
 ```bash
 dotnet publish ... -p:Version=1.0.${{ github.run_number }}
 ```
+
+---
+
+## Simplification Notes
+
+### MVVM Source Generators
+
+All ViewModels and observable models now use **CommunityToolkit.Mvvm source generators** (=8.4.2) instead of manual INotifyPropertyChanged. The [ObservableProperty] attribute generates the property, backing field, and change notification from a partial class extending ObservableObject. The [RelayCommand] attribute generates ICommand properties from methods. This eliminated ~270 lines of boilerplate across 8 files.
+
+**Converted classes:**
+
+| File | Before | After | Change |
+|---|---|---|---|
+| Chigen.Core/Models/CellCountEntry.cs | 70 lines, manual INPC | 20 lines, [ObservableProperty] | Removed OnPropertyChanged, backing fields, event |
+| Chigen.App/ViewModels/HotkeySettingsItem.cs | 70 lines, manual INPC | 15 lines, [ObservableProperty] | Same |
+| Chigen.App/ViewModels/CounterViewModel.cs | 480 lines | 375 lines | 9 [ObservableProperty] fields, 4 [RelayCommand] methods |
+| Chigen.App/ViewModels/SettingsViewModel.cs | 180 lines | 130 lines | 19 pass-through wrappers ? 1 [ObservableProperty] field |
+| Chigen.App/ViewModels/HotkeySettingsViewModel.cs | 160 lines | 120 lines | 2 [ObservableProperty] fields |
+| Chigen.App/Translations.cs | manual INPC | ObservableObject base | Uses OnPropertyChanged() instead of direct event invocation |
+
+### KeyToBinding Deduplication
+
+KeyBindingHelper.KeyToBinding(Key) was extracted from 2 identical 40-line switch statements into src/Chigen.App/KeyBindingHelper.cs. Both MainWindow.xaml.cs and HotkeySettingsWindow.xaml.cs now call the shared method.
+
+### PatientInfo Merge
+
+Chigen.Core.Models.PatientInfo already had all fields the Chigen.App.Views.PatientInfo duplicate had, plus Conclusion and Recommendations. Removed the duplicate Chigen.App.Views.PatientInfo class and updated PatientInfoWindow.xaml.cs and CounterViewModel.cs to reference Core.Models.PatientInfo directly.
+
+### TemplateService — Single Config File
+
+Replaced 7 separate JSON files (letterhead.json, 	emplates.json, cell_config.json, hotkeys.json, language.json, 	heme.json) with a single %LOCALAPPDATA%\Chigen\config.json carrying an AppConfigV1 container object. All existing Load/Save method signatures preserved. Backward compat: first load creates defaults; no migration needed from the old multi-file format (old files are ignored).
+
+### Dead Code Removed
+
+- Empty src/Chigen.App/Converters/ directory
+- Outdated docs/plan.md and docs/appearance.md (superseded by code.md)
+- AssemblyInfo.cs collapsed to a single [assembly: ThemeInfo(...)] line

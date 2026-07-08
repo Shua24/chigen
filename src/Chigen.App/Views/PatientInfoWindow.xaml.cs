@@ -1,12 +1,12 @@
-using System.Windows;
-using Chigen.App.ViewModels;
+﻿using System.Windows;
+using Chigen.Core.Models;
 using Chigen.Core.Services;
 
 namespace Chigen.App.Views
 {
     public partial class PatientInfoWindow : Window
     {
-        public PatientInfo Result { get; private set; } = new();
+        public Core.Models.PatientInfo Result { get; private set; } = new();
 
         public PatientInfoWindow()
         {
@@ -24,7 +24,7 @@ namespace Chigen.App.Views
             txtName.Focus();
         }
 
-        public PatientInfoWindow(PatientInfo existing) : this()
+        public PatientInfoWindow(Core.Models.PatientInfo existing) : this()
         {
             txtName.Text = existing.Name;
             txtId.Text = existing.Id;
@@ -39,7 +39,7 @@ namespace Chigen.App.Views
 
         private void Start_Click(object sender, RoutedEventArgs e)
         {
-            Result = new PatientInfo
+            Result = new Core.Models.PatientInfo
             {
                 Name = txtName.Text.Trim(),
                 Id = txtId.Text.Trim(),
@@ -60,18 +60,5 @@ namespace Chigen.App.Views
             DialogResult = true;
             Close();
         }
-    }
-
-    public class PatientInfo
-    {
-        public string Name { get; set; } = "";
-        public string Id { get; set; } = "";
-        public string DateOfBirth { get; set; } = "";
-        public string Sex { get; set; } = "";
-        public string Diagnosis { get; set; } = "";
-        public string Address { get; set; } = "";
-        public string Physician { get; set; } = "";
-        public string Ward { get; set; } = "";
-        public string PaymentMethod { get; set; } = "";
     }
 }

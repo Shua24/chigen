@@ -1,174 +1,107 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Chigen.Core.Models;
 
 namespace Chigen.Core.Services
 {
+    public class AppConfigV1
+    {
+        public LetterheadConfig Letterhead { get; set; } = new();
+        public DocumentTemplate Template { get; set; } = new();
+        public List<HotkeyMappingEntry> Hotkeys { get; set; } = [];
+        public string Language { get; set; } = "en";
+        public string Theme { get; set; } = "Light";
+    }
+
     public class TemplateService
     {
         private static readonly string ConfigFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Chigen");
 
-        private static readonly string LetterheadPath = Path.Combine(ConfigFolder, "letterhead.json");
-        private static readonly string TemplatePath = Path.Combine(ConfigFolder, "templates.json");
-        private static readonly string CellConfigPath = Path.Combine(ConfigFolder, "cell_config.json");
-        private static readonly string HotkeyPath = Path.Combine(ConfigFolder, "hotkeys.json");
-        private static readonly string LanguagePath = Path.Combine(ConfigFolder, "language.json");
-        private static readonly string ThemePath = Path.Combine(ConfigFolder, "theme.json");
+        private static readonly string ConfigPath = Path.Combine(ConfigFolder, "config.json");
 
         static TemplateService()
         {
             Directory.CreateDirectory(ConfigFolder);
         }
 
-        public static LetterheadConfig LoadLetterhead()
+        private static AppConfigV1 LoadConfig()
         {
-            if (File.Exists(LetterheadPath))
+            if (File.Exists(ConfigPath))
             {
                 try
                 {
-                    var json = File.ReadAllText(LetterheadPath);
-                    return JsonSerializer.Deserialize<LetterheadConfig>(json) ?? new LetterheadConfig();
+                    var json = File.ReadAllText(ConfigPath);
+                    return JsonSerializer.Deserialize<AppConfigV1>(json) ?? new AppConfigV1();
                 }
-                catch
-                {
-                    return new LetterheadConfig();
-                }
+                catch { }
             }
-            return new LetterheadConfig();
+            return new AppConfigV1();
         }
 
-        public static void SaveLetterhead(LetterheadConfig config)
+        private static void SaveConfig(AppConfigV1 config)
         {
             var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(LetterheadPath, json);
+            File.WriteAllText(ConfigPath, json);
         }
 
-        public static DocumentTemplate LoadTemplate(string name = "Default")
+        public static LetterheadConfig LoadLetterhead() => LoadConfig().Letterhead;
+        public static void SaveLetterhead(LetterheadConfig config)
         {
-            if (File.Exists(TemplatePath))
-            {
-                try
-                {
-                    var json = File.ReadAllText(TemplatePath);
-                    var templates = JsonSerializer.Deserialize<List<DocumentTemplate>>(json);
-                    return templates?.FirstOrDefault(t => t.Name == name) ?? new DocumentTemplate();
-                }
-                catch
-                {
-                    return new DocumentTemplate();
-                }
-            }
-            return new DocumentTemplate();
+            var cfg = LoadConfig();
+            cfg.Letterhead = config;
+            SaveConfig(cfg);
         }
 
+        public static DocumentTemplate LoadTemplate(string name = "Default") => LoadConfig().Template;
         public static void SaveTemplate(DocumentTemplate template)
         {
-            List<DocumentTemplate> templates = [];
-            if (File.Exists(TemplatePath))
-            {
-                try
-                {
-                    var json = File.ReadAllText(TemplatePath);
-                    templates = JsonSerializer.Deserialize<List<DocumentTemplate>>(json) ?? [];
-                }
-                catch { }
-            }
-
-            var existing = templates.FirstOrDefault(t => t.Name == template.Name);
-            if (existing != null)
-                templates.Remove(existing);
-            templates.Add(template);
-
-            File.WriteAllText(TemplatePath, JsonSerializer.Serialize(templates, new JsonSerializerOptions { WriteIndented = true }));
+            var cfg = LoadConfig();
+            cfg.Template = template;
+            SaveConfig(cfg);
         }
 
-        public static string LoadLanguage()
-        {
-            if (File.Exists(LanguagePath))
-            {
-                try
-                {
-                    var json = File.ReadAllText(LanguagePath);
-                    return JsonSerializer.Deserialize<string>(json) ?? "en";
-                }
-                catch { }
-            }
-            return "en";
-        }
-
+        public static string LoadLanguage() => LoadConfig().Language;
         public static void SaveLanguage(string lang)
         {
-            File.WriteAllText(LanguagePath, JsonSerializer.Serialize(lang));
+            var cfg = LoadConfig();
+            cfg.Language = lang;
+            SaveConfig(cfg);
         }
 
-        public static string LoadTheme()
-        {
-            if (File.Exists(ThemePath))
-            {
-                try
-                {
-                    var json = File.ReadAllText(ThemePath);
-                    return JsonSerializer.Deserialize<string>(json) ?? "Light";
-                }
-                catch { }
-            }
-            return "Light";
-        }
-
+        public static string LoadTheme() => LoadConfig().Theme;
         public static void SaveTheme(string theme)
         {
-            File.WriteAllText(ThemePath, JsonSerializer.Serialize(theme));
+            var cfg = LoadConfig();
+            cfg.Theme = theme;
+            SaveConfig(cfg);
         }
 
         public static List<HotkeyMappingEntry> LoadHotkeyMappings()
         {
-            if (!File.Exists(HotkeyPath))
-            {
-                return BuildDefaultMappings();
-            }
-
-            try
-            {
-                var json = File.ReadAllText(HotkeyPath);
-                return JsonSerializer.Deserialize<List<HotkeyMappingEntry>>(json) ?? BuildDefaultMappings();
-            }
-            catch
-            {
-                return BuildDefaultMappings();
-            }
+            var cfg = LoadConfig();
+            if (cfg.Hotkeys.Count > 0) return cfg.Hotkeys;
+            return BuildDefaultMappings();
         }
 
         public static void SaveHotkeyMappings(List<HotkeyMappingEntry> mappings)
         {
-            var json = JsonSerializer.Serialize(mappings, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(HotkeyPath, json);
+            var cfg = LoadConfig();
+            cfg.Hotkeys = mappings;
+            SaveConfig(cfg);
         }
 
         private static List<HotkeyMappingEntry> BuildDefaultMappings()
         {
             var entries = new List<HotkeyMappingEntry>();
-
             foreach (var ct in CellTypeProvider.GetDefaultPeripheralBloodTypes())
             {
-                entries.Add(new HotkeyMappingEntry
-                {
-                    CellTypeId = ct.Id,
-                    Key = ct.Key,
-                    Mode = CounterMode.PeripheralBlood
-                });
+                entries.Add(new HotkeyMappingEntry { CellTypeId = ct.Id, Key = ct.Key, Mode = CounterMode.PeripheralBlood });
             }
-
             foreach (var ct in CellTypeProvider.GetDefaultBoneMarrowTypes())
             {
-                entries.Add(new HotkeyMappingEntry
-                {
-                    CellTypeId = ct.Id,
-                    Key = ct.Key,
-                    Mode = CounterMode.BoneMarrow
-                });
+                entries.Add(new HotkeyMappingEntry { CellTypeId = ct.Id, Key = ct.Key, Mode = CounterMode.BoneMarrow });
             }
-
             return entries;
         }
     }
