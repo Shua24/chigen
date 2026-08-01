@@ -16,10 +16,10 @@ Chigen/
 |   +-- appearance.md
 |   +-- code.md               (this file)
 +-- src/
-    +-- Chigen.App/            (WPF, net8.0-windows)
-    +-- Chigen.Core/           (Class Library, net8.0)
-    +-- Chigen.DocumentExport/ (Class Library, net8.0)
-    +-- Chigen.Tests/          (xUnit Test Project, net8.0)
+    +-- Chigen.App/            (WPF, net10.0-windows)
+    +-- Chigen.Core/           (Class Library, net10.0)
+    +-- Chigen.DocumentExport/ (Class Library, net10.0)
+    +-- Chigen.Tests/          (xUnit Test Project, net10.0)
 ```
 
 ### Project Dependencies
