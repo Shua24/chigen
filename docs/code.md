@@ -1,4 +1,4 @@
-# Chigen Codebase Documentation
+﻿# Chigen Codebase Documentation
 
 ## Overview
 
@@ -10,26 +10,26 @@ Chigen is a fully offline WPF desktop application for cell differential counting
 
 ```
 Chigen/
-├── Chigen.sln
-├── docs/
-│   ├── plan.md
-│   ├── appearance.md
-│   └── code.md               (this file)
-└── src/
-    ├── Chigen.App/            (WPF, net8.0-windows)
-    ├── Chigen.Core/           (Class Library, net8.0)
-    ├── Chigen.DocumentExport/ (Class Library, net8.0)
-    └── Chigen.Tests/          (xUnit Test Project, net8.0)
++-- Chigen.sln
++-- docs/
+|   +-- plan.md
+|   +-- appearance.md
+|   +-- code.md               (this file)
++-- src/
+    +-- Chigen.App/            (WPF, net10.0-windows)
+    +-- Chigen.Core/           (Class Library, net10.0)
+    +-- Chigen.DocumentExport/ (Class Library, net10.0)
+    +-- Chigen.Tests/          (xUnit Test Project, net10.0)
 ```
 
 ### Project Dependencies
 
 ```
-Chigen.App ──> Chigen.Core
-Chigen.App ──> Chigen.DocumentExport
-Chigen.DocumentExport ──> Chigen.Core
-Chigen.Tests ──> Chigen.Core
-Chigen.Tests ──> Chigen.DocumentExport
+Chigen.App --> Chigen.Core
+Chigen.App --> Chigen.DocumentExport
+Chigen.DocumentExport --> Chigen.Core
+Chigen.Tests --> Chigen.Core
+Chigen.Tests --> Chigen.DocumentExport
 ```
 
 ---
@@ -156,7 +156,7 @@ Institution letterhead settings.
 | `Email`           | `string` | `""`                                    |
 | `LogoPath`        | `string`         | `""`                                        |
 | `LogoPlacement`   | `LogoPlacement`  | `Side` (enum: `Top`, `Side`)              |
-| `FooterText`      | `string`         | `"Confidential — For clinical use only"`   |
+| `FooterText`      | `string`         | `"Confidential -- For clinical use only"`   |
 
 #### `HotkeyMappingEntry`
 Maps a keyboard key to a cell type for a specific mode.
@@ -222,10 +222,13 @@ Manages JSON configuration files stored in `%LOCALAPPDATA%\Chigen\`.
 | `LoadHotkeyMappings()`                  | Loads from `hotkeys.json` or builds defaults |
 | `SaveHotkeyMappings(List<...>)`         | Saves to `hotkeys.json`                 |
 
-**Config files:**
-- `letterhead.json` — `LetterheadConfig`
-- `templates.json` — `List<DocumentTemplate>`
-- `hotkeys.json` — `List<HotkeyMappingEntry>`
+**Config file:**
+- `%LOCALAPPDATA%\Chigen\config.json` -- `AppConfigV1` structure containing:
+  - `Letterhead` (LetterheadConfig): Institution letterhead settings
+  - `Template` (DocumentTemplate): Document template settings
+  - `Hotkeys` (List<HotkeyMappingEntry>): Keyboard hotkey mappings
+  - `Language` (string): UI language code (default: "en")
+  - `Theme` (string): UI theme name (default: "Light")
 
 **Error handling:** Returns defaults for missing or corrupt files.
 
@@ -257,15 +260,15 @@ Builds a DOCX file using OpenXML SDK.
 | `AddFooter(CounterState.PatientInfo)` | Adds timestamp, footer text, signature line at 8pt |
 
 **Document sections (controlled by `DocumentTemplate`):**
-1. **Letterhead** — Institution name, department, address, optional logo image. Logo can be placed centered above text (`Top`) or left-aligned beside text (`Side`), controlled by `LetterheadConfig.LogoPlacement`. A thick 3pt bottom border ("letterhead rule") is painted directly on the last letterhead element (address line) using the border painter approach.
-2. **Report Title** — "HEMATOLOGY LABORATORY REPORT" rendered as a standalone heading, separate from the letterhead. Implemented as `AddReportTitle` (DOCX) / `DrawReportTitle` (PDF).
-3. **Patient Info** — Dynamic table where each field can be individually toggled via settings (`ShowPatientId`, `ShowPatientName`, `ShowPatientDob`, `ShowPatientSex`, `ShowPatientDiagnosis`, `ShowPatientAddress`, `ShowPatientPhysician`, `ShowPatientWard`, `ShowPatientPaymentMethod`). Fields are paired in rows (Patient ID/Date of Birth, Patient Name/Physician, Sex/Ward, Diagnosis/Payment Method, Address/Collection Date). Disabled fields are omitted from the table; when both paired fields are disabled, the row is skipped entirely.
-4. **Differential Count Table** — Header row (Cell Type, Count, %, Ref Range), data rows sorted by key, TOTAL row. Table data cells use 8pt font.
-5. **Conclusion** — Free-text interpretation section
-6. **Recommendations** — Free-text recommendations section (rendered below Conclusion; only shown when non-empty)
-7. **Footer** — Generation date, footer text, signature line. All elements use 8pt font.
+1. **Letterhead** -- Institution name, department, address, optional logo image. Logo can be placed centered above text (`Top`) or left-aligned beside text (`Side`), controlled by `LetterheadConfig.LogoPlacement`. A thick 3pt bottom border ("letterhead rule") is painted directly on the last letterhead element (address line) using the border painter approach.
+2. **Report Title** -- "HEMATOLOGY LABORATORY REPORT" rendered as a standalone heading, separate from the letterhead. Implemented as `AddReportTitle` (DOCX) / `DrawReportTitle` (PDF).
+3. **Patient Info** -- Dynamic table where each field can be individually toggled via settings (`ShowPatientId`, `ShowPatientName`, `ShowPatientDob`, `ShowPatientSex`, `ShowPatientDiagnosis`, `ShowPatientAddress`, `ShowPatientPhysician`, `ShowPatientWard`, `ShowPatientPaymentMethod`). Fields are paired in rows (Patient ID/Date of Birth, Patient Name/Physician, Sex/Ward, Diagnosis/Payment Method, Address/Collection Date). Disabled fields are omitted from the table; when both paired fields are disabled, the row is skipped entirely.
+4. **Differential Count Table** -- Header row (Cell Type, Count, %, Ref Range), data rows sorted by key, TOTAL row. Table data cells use 8pt font.
+5. **Conclusion** -- Free-text interpretation section
+6. **Recommendations** -- Free-text recommendations section (rendered below Conclusion; only shown when non-empty)
+7. **Footer** -- Generation date, footer text, signature line. All elements use 8pt font.
 
-**Sort key logic:** Numeric keys (0-9) sort before alpha keys (A-Z). `"1"` → `"01"`, `"A"` → `"1A"`.
+**Sort key logic:** Numeric keys (0-9) sort before alpha keys (A-Z). `"1"` -> `"01"`, `"A"` -> `"1A"`.
 
 #### `DirectPdfGenerator`
 Generates PDF directly using PdfSharp (no Word dependency). Mirrors the DOCX layout.
@@ -288,7 +291,7 @@ Facilitates PDF conversion via Word Interop or fallback to `DirectPdfGenerator`.
 |---------------------------------------------------------------------------------|------------------------------------|
 | `CheckAvailability()`                                                           | Detects if Word is installed       |
 | `Convert(string outputPdfPath, CounterState, PatientInfo, SpecimenInfo, LetterheadConfig, DocumentTemplate, PdfConversionMethod)` | Converts to PDF using specified method |
-| `InvokeWordMethod(object target, string methodName, params object?[] args)`     | Calls a Word COM method via reflection; unwraps `TargetInvocationException` → `InvalidOperationException` with `"Word.{methodName} failed: {inner}"` |
+| `InvokeWordMethod(object target, string methodName, params object?[] args)`     | Calls a Word COM method via reflection; unwraps `TargetInvocationException` -> `InvalidOperationException` with `"Word.{methodName} failed: {inner}"` |
 | `InvokeGetProperty(object target, string propertyName)`                         | Gets a Word COM property via reflection; same error unwrapping |
 
 ---
@@ -304,7 +307,7 @@ Application entry point. Enforces single-instance via named mutex.
 
 #### `MainWindow`
 Main application window. Handles keyboard input for cell counting and triggers document generation.
-The patient summary badge (column 0 of the info bar) is bound to `HasPatientInfo` via `BooleanToVisibilityConverter` — it hides when all patient fields are disabled in settings.
+The patient summary badge (column 0 of the info bar) is bound to `HasPatientInfo` via `BooleanToVisibilityConverter` -- it hides when all patient fields are disabled in settings.
 
 **Action buttons** are defined in a 9-column Grid row with `Column="0"` through `Column="8"`. Column 8 is the **Exit** button (`Background="#D9534F"`) which calls `Close()` via `Exit_Click` handler. **Ctrl+Q** is bound in `Window_PreviewKeyDown` and shown in the status bar as `Ctrl+Q=Exit`.
 
@@ -353,9 +356,9 @@ Patient data entry dialog. Each field (Patient Name, ID, DOB, Sex, Diagnosis, Ad
 
 #### `SettingsWindow`
 Letterhead configuration and document template settings. Contains:
-- **Letterhead fields** — Institution name, department, address, phone, email, logo, logo placement, footer text
-- **"Use letterhead"** checkbox — toggles letterhead in generated documents
-- **Patient Info Fields** (bordered section) — per-field checkboxes for Patient ID, Name, DOB, Sex, Diagnosis, Address, Physician, Ward, Payment Method
+- **Letterhead fields** -- Institution name, department, address, phone, email, logo, logo placement, footer text
+- **"Use letterhead"** checkbox -- toggles letterhead in generated documents
+- **Patient Info Fields** (bordered section) -- per-field checkboxes for Patient ID, Name, DOB, Sex, Diagnosis, Address, Physician, Ward, Payment Method
 
 #### `HotkeySettingsWindow`, `ConclusionWindow`, `RecommendationsWindow`
 Dialog windows for hotkey configuration, Conclusion entry, and Recommendations entry.
@@ -370,52 +373,52 @@ xUnit test project covering business logic and document generation utilities.
 
 ```
 Chigen.Tests/
-├── Models/
-│   ├── CellTypeTests.cs
-│   ├── CounterModeTests.cs
-│   ├── CellCountEntryTests.cs
-│   ├── CounterStateTests.cs
-│   ├── PatientInfoTests.cs
-│   ├── SpecimenInfoTests.cs
-│   ├── DocumentTemplateTests.cs
-│   ├── LetterheadConfigTests.cs
-│   ├── UndoActionTests.cs
-│   ├── HotkeyMappingEntryTests.cs
-│   └── KeyConverterTests.cs
-├── Services/
-│   ├── CellTypeProviderTests.cs
-│   ├── CounterServiceTests.cs
-│   ├── CounterServiceModeTests.cs
-│   └── TemplateServiceTests.cs
-└── DocumentExport/
-    ├── SortKeyTests.cs
-    └── PdfConversionMethodTests.cs
++-- Models/
+|   +-- CellTypeTests.cs
+|   +-- CounterModeTests.cs
+|   +-- CellCountEntryTests.cs
+|   +-- CounterStateTests.cs
+|   +-- PatientInfoTests.cs
+|   +-- SpecimenInfoTests.cs
+|   +-- DocumentTemplateTests.cs
+|   +-- LetterheadConfigTests.cs
+|   +-- UndoActionTests.cs
+|   +-- HotkeyMappingEntryTests.cs
+|   +-- KeyConverterTests.cs
++-- Services/
+|   +-- CellTypeProviderTests.cs
+|   +-- CounterServiceTests.cs
+|   +-- CounterServiceModeTests.cs
+|   +-- TemplateServiceTests.cs
++-- DocumentExport/
+    +-- SortKeyTests.cs
+    +-- PdfConversionMethodTests.cs
 ```
 
 ### Test Categories
 
 #### Model Tests (11 files, ~30 tests)
-- **CellTypeTests** — Default values and property assignment
-- **CounterModeTests** — Enum integer values
-- **CellCountEntryTests** — Constructor, property get/set, Reset(), PropertyChanged events, INotifyPropertyChanged implementation
-- **CounterStateTests** — Total computation, percentage calculation (including edge cases: zero total, rounding), mode default, undo stack, ResetAll()
-- **PatientInfoTests** — Default values and property assignment
-- **SpecimenInfoTests** — Default values (type, dates), property assignment
-- **DocumentTemplateTests** — Default values and property assignment
-- **LetterheadConfigTests** — Default values and property assignment
-- **UndoActionTests** — Default values and property assignment
-- **HotkeyMappingEntryTests** — Default values and property assignment
-- **KeyConverterTests** — JSON deserialization (numeric and string keys), serialization, HotkeyMappingEntry integration
+- **CellTypeTests** -- Default values and property assignment
+- **CounterModeTests** -- Enum integer values
+- **CellCountEntryTests** -- Constructor, property get/set, Reset(), PropertyChanged events, INotifyPropertyChanged implementation
+- **CounterStateTests** -- Total computation, percentage calculation (including edge cases: zero total, rounding), mode default, undo stack, ResetAll()
+- **PatientInfoTests** -- Default values and property assignment
+- **SpecimenInfoTests** -- Default values (type, dates), property assignment
+- **DocumentTemplateTests** -- Default values and property assignment
+- **LetterheadConfigTests** -- Default values and property assignment
+- **UndoActionTests** -- Default values and property assignment
+- **HotkeyMappingEntryTests** -- Default values and property assignment
+- **KeyConverterTests** -- JSON deserialization (numeric and string keys), serialization, HotkeyMappingEntry integration
 
 #### Service Tests (4 files, ~45 tests)
-- **CellTypeProviderTests** — PB returns 10 types, BM returns 15 types, correct modes, correct key mappings, correct groups, extra BM types
-- **CounterServiceTests** — Constructor loads PB by default, TryCount (valid/invalid/null/empty keys), undo stack behavior, TryCountManual, TryUndoManual, reset, count dictionary, total computation, percentage recalculation, mode switching, ApplyHotkeyMappings
-- **CounterServiceModeTests** — BM mode cell types, alpha keys, numeric keys in BM mode, mode switching clears counts and undo stack
-- **TemplateServiceTests** — File I/O: load/save letterhead, load/save templates, template by name, overwrite existing, default when missing, corrupt file handling, hotkey mappings, build defaults when missing
+- **CellTypeProviderTests** -- PB returns 10 types, BM returns 15 types, correct modes, correct key mappings, correct groups, extra BM types
+- **CounterServiceTests** -- Constructor loads PB by default, TryCount (valid/invalid/null/empty keys), undo stack behavior, TryCountManual, TryUndoManual, reset, count dictionary, total computation, percentage recalculation, mode switching, ApplyHotkeyMappings
+- **CounterServiceModeTests** -- BM mode cell types, alpha keys, numeric keys in BM mode, mode switching clears counts and undo stack
+- **TemplateServiceTests** -- File I/O: load/save letterhead, load/save templates, template by name, overwrite existing, default when missing, corrupt file handling, hotkey mappings, build defaults when missing
 
 #### Document Export Tests (2 files, ~10 tests)
-- **SortKeyTests** — Numeric keys zero-prefixed, alpha keys one-prefixed, empty/null returns "ZZ", numeric sorts before alpha
-- **PdfConversionMethodTests** — Enum integer values
+- **SortKeyTests** -- Numeric keys zero-prefixed, alpha keys one-prefixed, empty/null returns "ZZ", numeric sorts before alpha
+- **PdfConversionMethodTests** -- Enum integer values
 
 ### Running Tests
 
@@ -452,7 +455,7 @@ All 118 tests should pass.
 - **Error unwrapping**: PDF export via Word Interop uses `InvokeWordMethod`/`InvokeGetProperty` helpers that unwrap `TargetInvocationException` into `InvalidOperationException` with a `"Word.{method} failed:"` prefix, so the real COM error surfaces instead of the generic reflection wrapper. Both DOCX and PDF catch handlers in `CounterViewModel` also unwrap `TargetInvocationException` to show the inner exception.
 - **Single Line Spacing**: DOCX documents use `DocDefaults(ParagraphPropertiesDefault(SpacingBetweenLines Line="240" LineRule=Auto Before=0 After=0))` for compact layout
 - **Logo validation**: When `ShowLetterhead` is enabled, `LogoPath` must be non-empty; export throws `"The letterhead logo is required. Go to settings to set the logo."` otherwise
-- **Font Sizes**: Letterhead uses 12pt/10pt/9pt hierarchy; table data cells use 8pt; footer uses 8pt — all sized to fit the report on a single page
+- **Font Sizes**: Letterhead uses 12pt/10pt/9pt hierarchy; table data cells use 8pt; footer uses 8pt -- all sized to fit the report on a single page
 - **Mode Switching**: PB mode (10 cell types) vs BM mode (15 cell types) with separate hotkey mappings
 
 ---
@@ -503,3 +506,40 @@ Then pass from the workflow:
 ```bash
 dotnet publish ... -p:Version=1.0.${{ github.run_number }}
 ```
+
+---
+
+## Simplification Notes
+
+### MVVM Source Generators
+
+All ViewModels and observable models now use **CommunityToolkit.Mvvm source generators** (=8.4.2) instead of manual INotifyPropertyChanged. The [ObservableProperty] attribute generates the property, backing field, and change notification from a partial class extending ObservableObject. The [RelayCommand] attribute generates ICommand properties from methods. This eliminated ~270 lines of boilerplate across 8 files.
+
+**Converted classes:**
+
+| File | Before | After | Change |
+|---|---|---|---|
+| Chigen.Core/Models/CellCountEntry.cs | 70 lines, manual INPC | 20 lines, [ObservableProperty] | Removed OnPropertyChanged, backing fields, event |
+| Chigen.App/ViewModels/HotkeySettingsItem.cs | 70 lines, manual INPC | 15 lines, [ObservableProperty] | Same |
+| Chigen.App/ViewModels/CounterViewModel.cs | 480 lines | 375 lines | 9 [ObservableProperty] fields, 4 [RelayCommand] methods |
+| Chigen.App/ViewModels/SettingsViewModel.cs | 180 lines | 130 lines | 19 pass-through wrappers ? 1 [ObservableProperty] field |
+| Chigen.App/ViewModels/HotkeySettingsViewModel.cs | 160 lines | 120 lines | 2 [ObservableProperty] fields |
+| Chigen.App/Translations.cs | manual INPC | ObservableObject base | Uses OnPropertyChanged() instead of direct event invocation |
+
+### KeyToBinding Deduplication
+
+KeyBindingHelper.KeyToBinding(Key) was extracted from 2 identical 40-line switch statements into src/Chigen.App/KeyBindingHelper.cs. Both MainWindow.xaml.cs and HotkeySettingsWindow.xaml.cs now call the shared method.
+
+### PatientInfo Merge
+
+Chigen.Core.Models.PatientInfo already had all fields the Chigen.App.Views.PatientInfo duplicate had, plus Conclusion and Recommendations. Removed the duplicate Chigen.App.Views.PatientInfo class and updated PatientInfoWindow.xaml.cs and CounterViewModel.cs to reference Core.Models.PatientInfo directly.
+
+### TemplateService � Single Config File
+
+Replaced 7 separate JSON files (letterhead.json, 	emplates.json, cell_config.json, hotkeys.json, language.json, 	heme.json) with a single %LOCALAPPDATA%\Chigen\config.json carrying an AppConfigV1 container object. All existing Load/Save method signatures preserved. Backward compat: first load creates defaults; no migration needed from the old multi-file format (old files are ignored).
+
+### Dead Code Removed
+
+- Empty src/Chigen.App/Converters/ directory
+- Outdated docs/plan.md and docs/appearance.md (superseded by code.md)
+- AssemblyInfo.cs collapsed to a single [assembly: ThemeInfo(...)] line

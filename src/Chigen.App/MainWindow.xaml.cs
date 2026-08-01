@@ -4,6 +4,7 @@ using Chigen.App.ViewModels;
 using Chigen.App.Views;
 using Chigen.Core.Models;
 using Chigen.DocumentExport;
+using PdfSharp.Fonts;
 
 namespace Chigen.App;
 
@@ -13,18 +14,10 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        GlobalFontSettings.FontResolver = new ChigenFontResolver();
         InitializeComponent();
         _viewModel = new CounterViewModel();
         DataContext = _viewModel;
-
-        CheckWordAvailability();
-    }
-
-    private void CheckWordAvailability()
-    {
-        var method = PdfConverter.CheckAvailability();
-        _viewModel.PdfMethod = method;
-        _viewModel.IsWordAvailable = method == PdfConversionMethod.WordInterop;
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -73,7 +66,7 @@ public partial class MainWindow : Window
         if (e.KeyboardDevice.Modifiers != ModifierKeys.None)
             return;
 
-        string? key = KeyToBinding(e.Key);
+        string? key = KeyBindingHelper.KeyToBinding(e.Key);
         if (key != null)
         {
             e.Handled = true;
@@ -93,50 +86,6 @@ public partial class MainWindow : Window
                 _viewModel.HandleReset();
                 break;
         }
-    }
-
-    private static string? KeyToBinding(Key key)
-    {
-        return key switch
-        {
-            Key.D0 or Key.NumPad0 => "0",
-            Key.D1 or Key.NumPad1 => "1",
-            Key.D2 or Key.NumPad2 => "2",
-            Key.D3 or Key.NumPad3 => "3",
-            Key.D4 or Key.NumPad4 => "4",
-            Key.D5 or Key.NumPad5 => "5",
-            Key.D6 or Key.NumPad6 => "6",
-            Key.D7 or Key.NumPad7 => "7",
-            Key.D8 or Key.NumPad8 => "8",
-            Key.D9 or Key.NumPad9 => "9",
-            Key.A => "A",
-            Key.B => "B",
-            Key.C => "C",
-            Key.D => "D",
-            Key.E => "E",
-            Key.F => "F",
-            Key.G => "G",
-            Key.H => "H",
-            Key.I => "I",
-            Key.J => "J",
-            Key.K => "K",
-            Key.L => "L",
-            Key.M => "M",
-            Key.N => "N",
-            Key.O => "O",
-            Key.P => "P",
-            Key.Q => "Q",
-            Key.R => "R",
-            Key.S => "S",
-            Key.T => "T",
-            Key.U => "U",
-            Key.V => "V",
-            Key.W => "W",
-            Key.X => "X",
-            Key.Y => "Y",
-            Key.Z => "Z",
-            _ => null
-        };
     }
 
     private void Patient_Click(object sender, RoutedEventArgs e)
@@ -213,5 +162,10 @@ public partial class MainWindow : Window
     private void Exit_Click(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private void ThemeToggle_Click(object sender, RoutedEventArgs e)
+    {
+        _viewModel.ToggleTheme();
     }
 }

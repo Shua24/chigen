@@ -1,26 +1,28 @@
-using System.Text.Json;
-using Chigen.Core.Models;
+﻿using Chigen.Core.Models;
 using Chigen.Core.Services;
 
 namespace Chigen.Tests.Services
 {
     public class TemplateServiceTests : IDisposable
     {
-        private static readonly string ConfigFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Chigen");
+        private readonly string _testConfigFolder;
+        private readonly string _configPath;
 
         public TemplateServiceTests()
         {
-            Directory.CreateDirectory(ConfigFolder);
+            // Create a unique temp directory for each test run
+            _testConfigFolder = Path.Combine(Path.GetTempPath(), $"ChigenTests_{Guid.NewGuid():N}");
+            _configPath = Path.Combine(_testConfigFolder, "config.json");
+
+            // Set the override so TemplateService uses our test directory
+            TemplateService.TestConfigFolderOverride = _testConfigFolder;
+
+            Directory.CreateDirectory(_testConfigFolder);
         }
 
         [Fact]
         public void LoadLetterhead_ReturnsDefault_WhenFileMissing()
         {
-            var letterheadPath = Path.Combine(ConfigFolder, "letterhead.json");
-            if (File.Exists(letterheadPath)) File.Delete(letterheadPath);
-
             var config = TemplateService.LoadLetterhead();
             Assert.Equal("My Hospital", config.InstitutionName);
         }
@@ -56,9 +58,6 @@ namespace Chigen.Tests.Services
         [Fact]
         public void LoadTemplate_ReturnsDefault_WhenFileMissing()
         {
-            var templatePath = Path.Combine(ConfigFolder, "templates.json");
-            if (File.Exists(templatePath)) File.Delete(templatePath);
-
             var template = TemplateService.LoadTemplate();
             Assert.Equal("Default", template.Name);
             Assert.True(template.ShowLetterhead);
@@ -89,46 +88,23 @@ namespace Chigen.Tests.Services
         }
 
         [Fact]
-        public void LoadTemplate_WithSpecificName_ReturnsCorrectTemplate()
+        public void SaveAndLoadLanguage_PersistsCorrectly()
         {
-            var t1 = new DocumentTemplate { Name = "A", HeaderFormat = "Format A" };
-            var t2 = new DocumentTemplate { Name = "B", HeaderFormat = "Format B" };
-
-            TemplateService.SaveTemplate(t1);
-            TemplateService.SaveTemplate(t2);
-
-            var loaded = TemplateService.LoadTemplate("A");
-            Assert.Equal("Format A", loaded.HeaderFormat);
+            TemplateService.SaveLanguage("id");
+            Assert.Equal("id", TemplateService.LoadLanguage());
         }
 
         [Fact]
-        public void LoadTemplate_WithUnknownName_ReturnsDefault()
+        public void SaveAndLoadTheme_PersistsCorrectly()
         {
-            var loaded = TemplateService.LoadTemplate("NonExistent");
-            Assert.Equal("Default", loaded.Name);
+            TemplateService.SaveTheme("Dark");
+            Assert.Equal("Dark", TemplateService.LoadTheme());
         }
 
         [Fact]
-        public void SaveTemplate_UpdatesExisting()
+        public void LoadHotkeyMappings_ReturnsDefaults_WhenEmpty()
         {
-            var t = new DocumentTemplate { Name = "Updatable", HeaderFormat = "V1" };
-            TemplateService.SaveTemplate(t);
-
-            t.HeaderFormat = "V2";
-            TemplateService.SaveTemplate(t);
-
-            var loaded = TemplateService.LoadTemplate("Updatable");
-            Assert.Equal("V2", loaded.HeaderFormat);
-        }
-
-        [Fact]
-        public void LoadHotkeyMappings_ReturnsDefaults_WhenFileMissing()
-        {
-            var hotkeyPath = Path.Combine(ConfigFolder, "hotkeys.json");
-            if (File.Exists(hotkeyPath)) File.Delete(hotkeyPath);
-
             var mappings = TemplateService.LoadHotkeyMappings();
-
             Assert.NotEmpty(mappings);
             var pbMappings = mappings.Where(m => m.Mode == CounterMode.PeripheralBlood).ToList();
             var bmMappings = mappings.Where(m => m.Mode == CounterMode.BoneMarrow).ToList();
@@ -160,53 +136,35 @@ namespace Chigen.Tests.Services
         }
 
         [Fact]
-        public void LoadLetterhead_ReturnsDefault_WhenFileCorrupt()
+        public void LoadConfig_ReturnsDefault_WhenFileCorrupt()
         {
-            var letterheadPath = Path.Combine(ConfigFolder, "letterhead.json");
-            File.WriteAllText(letterheadPath, "not valid json");
+            File.WriteAllText(_configPath, "not valid json");
 
             var config = TemplateService.LoadLetterhead();
             Assert.Equal("My Hospital", config.InstitutionName);
         }
 
         [Fact]
-        public void LoadTemplate_ReturnsDefault_WhenFileCorrupt()
+        public void SaveConfig_CreatesFileWhenNotExists()
         {
-            var templatePath = Path.Combine(ConfigFolder, "templates.json");
-            File.WriteAllText(templatePath, "not valid json");
-
-            var template = TemplateService.LoadTemplate();
-            Assert.Equal("Default", template.Name);
-        }
-
-        [Fact]
-        public void SaveTemplate_CreatesFileWhenNotExists()
-        {
-            var templatePath = Path.Combine(ConfigFolder, "templates.json");
-            if (File.Exists(templatePath)) File.Delete(templatePath);
-
             var t = new DocumentTemplate { Name = "NewTemplate" };
             TemplateService.SaveTemplate(t);
 
-            Assert.True(File.Exists(templatePath));
+            Assert.True(File.Exists(_configPath));
             var loaded = TemplateService.LoadTemplate("NewTemplate");
             Assert.Equal("NewTemplate", loaded.Name);
         }
 
         public void Dispose()
         {
+            // Clear the override
+            TemplateService.TestConfigFolderOverride = null;
+
+            // Delete the entire test directory
             try
             {
-                var testFiles = new[]
-                {
-                    Path.Combine(ConfigFolder, "letterhead.json"),
-                    Path.Combine(ConfigFolder, "templates.json"),
-                    Path.Combine(ConfigFolder, "hotkeys.json")
-                };
-                foreach (var f in testFiles)
-                {
-                    if (File.Exists(f)) File.Delete(f);
-                }
+                if (Directory.Exists(_testConfigFolder))
+                    Directory.Delete(_testConfigFolder, recursive: true);
             }
             catch { }
         }

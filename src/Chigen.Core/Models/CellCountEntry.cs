@@ -1,39 +1,17 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using System.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Chigen.Core.Models
 {
-    public class CellCountEntry : INotifyPropertyChanged
+    public partial class CellCountEntry : ObservableObject
     {
         public CellType CellType { get; }
 
+        [ObservableProperty]
         private int _count;
-        public int Count
-        {
-            get => _count;
-            set
-            {
-                if (_count != value)
-                {
-                    _count = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
 
+        [ObservableProperty]
         private double _percentage;
-        public double Percentage
-        {
-            get => _percentage;
-            set
-            {
-                if (Math.Abs(_percentage - value) > 0.01)
-                {
-                    _percentage = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
 
         public CellCountEntry(CellType cellType)
         {
@@ -44,13 +22,6 @@ namespace Chigen.Core.Models
         {
             Count = 0;
             Percentage = 0;
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

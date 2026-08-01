@@ -1,9 +1,9 @@
-# Building Chigen from Source
+﻿# Building Chigen from Source
 
 ## Prerequisites
 
-- **Windows** (7, 8, 10, or 11) — required because the app is WPF-based
-- **.NET 8 SDK** — download from [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/8.0)
+- **Windows** (10 or 11) -- required because the app is WPF-based
+- **.NET 10 SDK** -- download from [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/10.0)
 - Optional: **Visual Studio 2022** (any edition) or **JetBrains Rider** for IDE support
 
 ## Quick start
@@ -15,7 +15,7 @@ dotnet restore
 dotnet build
 ```
 
-This produces four assemblies under `src/*/bin/Debug/net8.0/` (and one under `net8.0-windows/` for the WPF project).
+This produces four assemblies under `src/*/bin/Debug/net10.0/` (and one under `net10.0-windows/` for the WPF project).
 
 ## Run the app
 
@@ -31,7 +31,7 @@ Or open `Chigen.sln` in Visual Studio and press **F5**.
 dotnet test src/Chigen.Tests/Chigen.Tests.csproj
 ```
 
-All 118 tests should pass. Test framework: **xUnit** with `Microsoft.NET.Test.Sdk` and `coverlet.collector` for code coverage.
+All 115 tests should pass. Test framework: **xUnit** with `Microsoft.NET.Test.Sdk` and `coverlet.collector` for code coverage.
 
 ## Publish a standalone executable
 
@@ -61,21 +61,21 @@ dotnet publish src/Chigen.App/Chigen.App.csproj \
 ## Project dependencies
 
 ```
-Chigen.App ──> Chigen.Core
-Chigen.App ──> Chigen.DocumentExport
-Chigen.DocumentExport ──> Chigen.Core
-Chigen.Tests ──> Chigen.Core
-Chigen.Tests ──> Chigen.DocumentExport
+Chigen.App --> Chigen.Core
+Chigen.App --> Chigen.DocumentExport
+Chigen.DocumentExport --> Chigen.Core
+Chigen.Tests --> Chigen.Core
+Chigen.Tests --> Chigen.DocumentExport
 ```
 
 ## Target frameworks
 
 | Project | Framework |
 |---------|-----------|
-| `Chigen.App` | `net8.0-windows` (WPF) |
-| `Chigen.Core` | `net8.0` |
-| `Chigen.DocumentExport` | `net8.0` |
-| `Chigen.Tests` | `net8.0` |
+| `Chigen.App` | `net10.0-windows` (WPF) |
+| `Chigen.Core` | `net10.0` |
+| `Chigen.DocumentExport` | `net10.0` |
+| `Chigen.Tests` | `net10.0` |
 
 All projects use `<ImplicitUsings>enable</ImplicitUsings>` and `<Nullable>enable</Nullable>`.
 
@@ -83,14 +83,13 @@ All projects use `<ImplicitUsings>enable</ImplicitUsings>` and `<Nullable>enable
 
 | Package | Version | Used in |
 |---------|---------|---------|
-| `DocumentFormat.OpenXml` | 3.5.1 | Core, DocumentExport |
-| `CommunityToolkit.Mvvm` | 8.4.2 | App |
-| `Microsoft.Office.Interop.Word` | 15.0.4797.1004 | DocumentExport |
+| `DocumentFormat.OpenXml` | 3.5.1 | DocumentExport |
+| `CommunityToolkit.Mvvm` | 8.4.2 | Core, App |
 | `PdfSharp` | 6.2.4 | DocumentExport |
-| `xunit` | 2.5.3 | Tests |
-| `xunit.runner.visualstudio` | 2.5.3 | Tests |
-| `Microsoft.NET.Test.Sdk` | 17.8.0 | Tests |
-| `coverlet.collector` | 6.0.0 | Tests |
+| `xunit` | 2.9.3 | Tests |
+| `xunit.runner.visualstudio` | 3.1.5 | Tests |
+| `Microsoft.NET.Test.Sdk` | 18.8.1 | Tests |
+| `coverlet.collector` | 10.0.1 | Tests |
 
 ## Notes
 

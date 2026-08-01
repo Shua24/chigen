@@ -1,10 +1,11 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Chigen.Core.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Chigen.App
 {
-    public class Translations : INotifyPropertyChanged
+    public class Translations : ObservableObject
     {
         public Translations()
         {
@@ -13,11 +14,10 @@ namespace Chigen.App
 
         private void OnLanguageChanged()
         {
-            // Notify all properties when language changes
             var props = typeof(Translations)
                 .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             foreach (var prop in props)
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop.Name));
+                OnPropertyChanged(prop.Name);
         }
 
         // -- MainWindow --
@@ -72,6 +72,9 @@ namespace Chigen.App
         public string Language => TranslationService.GetString("Language");
         public string LogoTop => TranslationService.GetString("LogoTop");
         public string LogoSide => TranslationService.GetString("LogoSide");
+        public string Theme => TranslationService.GetString("Theme");
+        public string ThemeLightMode => TranslationService.GetString("ThemeLightMode");
+        public string ThemeDarkMode => TranslationService.GetString("ThemeDarkMode");
 
         // -- PatientInfoWindow --
         public string PatientInfoTitle => TranslationService.GetString("PatientInfoTitle");
@@ -108,8 +111,10 @@ namespace Chigen.App
         public string ColConflict => TranslationService.GetString("ColConflict");
         public string ConflictText => TranslationService.GetString("ConflictText");
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? name = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        // -- Export messages --
+        public string DocxFilter => TranslationService.GetString("DocxFilter");
+        public string PdfFilter => TranslationService.GetString("PdfFilter");
+        public string SaveDocxTitle => TranslationService.GetString("SaveDocxTitle");
+        public string SavePdfTitle => TranslationService.GetString("SavePdfTitle");
     }
 }

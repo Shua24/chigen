@@ -1,17 +1,16 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using Chigen.Core.Models;
 using Chigen.Core.Services;
 using Chigen.DocumentExport;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace Chigen.App.ViewModels
 {
-    public class CounterViewModel : INotifyPropertyChanged
+    public partial class CounterViewModel : ObservableObject
     {
         private readonly CounterService _counterService = new();
 
@@ -24,6 +23,7 @@ namespace Chigen.App.ViewModels
             {
                 OnPropertyChanged(nameof(PatientDisplay));
                 OnPropertyChanged(nameof(StatusText));
+                OnPropertyChanged(nameof(CurrentThemeLabel));
             };
             RefreshTemplateSettings();
             ApplySavedHotkeys();
@@ -31,82 +31,40 @@ namespace Chigen.App.ViewModels
             UpdateState();
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(PatientDisplay))]
         private string _patientName = "";
-        public string PatientName
-        {
-            get => _patientName;
-            set { _patientName = value; OnPropertyChanged(); OnPropertyChanged(nameof(PatientDisplay)); }
-        }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(PatientDisplay))]
         private string _patientId = "";
-        public string PatientId
-        {
-            get => _patientId;
-            set { _patientId = value; OnPropertyChanged(); OnPropertyChanged(nameof(PatientDisplay)); }
-        }
 
+        [ObservableProperty]
         private string _patientDob = "";
-        public string PatientDob
-        {
-            get => _patientDob;
-            set { _patientDob = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _patientSex = "";
-        public string PatientSex
-        {
-            get => _patientSex;
-            set { _patientSex = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _patientDiagnosis = "";
-        public string PatientDiagnosis
-        {
-            get => _patientDiagnosis;
-            set { _patientDiagnosis = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _patientAddress = "";
-        public string PatientAddress
-        {
-            get => _patientAddress;
-            set { _patientAddress = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _physician = "";
-        public string Physician
-        {
-            get => _physician;
-            set { _physician = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _ward = "";
-        public string Ward
-        {
-            get => _ward;
-            set { _ward = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _paymentMethod = "";
-        public string PaymentMethod
-        {
-            get => _paymentMethod;
-            set { _paymentMethod = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _Conclusion = "";
-        public string Conclusion
-        {
-            get => _Conclusion;
-            set { _Conclusion = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _Recommendations = "";
-        public string Recommendations
-        {
-            get => _Recommendations;
-            set { _Recommendations = value; OnPropertyChanged(); }
-        }
 
         public string PatientDisplay
         {
@@ -123,12 +81,8 @@ namespace Chigen.App.ViewModels
 
         public string SpecimenDate => DateTime.Now.ToString("yyyy-MM-dd");
 
+        [ObservableProperty]
         private int _totalCount;
-        public int TotalCount
-        {
-            get => _totalCount;
-            set { _totalCount = value; OnPropertyChanged(); }
-        }
 
         private CounterMode _currentMode = CounterMode.PeripheralBlood;
         public CounterMode CurrentMode
@@ -150,54 +104,62 @@ namespace Chigen.App.ViewModels
         public bool IsPbMode => CurrentMode == CounterMode.PeripheralBlood;
         public bool IsBmMode => CurrentMode == CounterMode.BoneMarrow;
 
+        public Geometry CurrentThemeIcon
+        {
+            get
+            {
+                var theme = TemplateService.LoadTheme();
+                var key = theme == "Dark" ? "GeomSun" : "GeomMoon";
+                return (Geometry)Application.Current.Resources[key];
+            }
+        }
+
+        public string CurrentThemeLabel
+        {
+            get
+            {
+                var theme = TemplateService.LoadTheme();
+                var key = theme == "Dark" ? "ThemeLightMode" : "ThemeDarkMode";
+                return TranslationService.GetString(key);
+            }
+        }
+
+        public void ToggleTheme()
+        {
+            var currentTheme = TemplateService.LoadTheme();
+            var newTheme = currentTheme == "Dark" ? "Light" : "Dark";
+            TemplateService.SaveTheme(newTheme);
+            App.SetTheme(newTheme);
+            OnPropertyChanged(nameof(CurrentThemeIcon));
+            OnPropertyChanged(nameof(CurrentThemeLabel));
+        }
+
+        [ObservableProperty]
         private string _statusText;
-        public string StatusText
-        {
-            get => _statusText;
-            set { _statusText = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private bool _canUndo;
-        public bool CanUndo
-        {
-            get => _canUndo;
-            set { _canUndo = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private bool _canExport;
-        public bool CanExport
-        {
-            get => _canExport;
-            set { _canExport = value; OnPropertyChanged(); }
-        }
-
-        private bool _isWordAvailable = true;
-        public bool IsWordAvailable
-        {
-            get => _isWordAvailable;
-            set { _isWordAvailable = value; OnPropertyChanged(); }
-        }
-
-        private PdfConversionMethod _pdfMethod = PdfConversionMethod.DirectPdfGenerator;
-        public PdfConversionMethod PdfMethod
-        {
-            get => _pdfMethod;
-            set { _pdfMethod = value; OnPropertyChanged(); }
-        }
 
         public ICommand IncrementCommand => new RelayCommand<string>(IncrementCount);
         public ICommand DecrementCommand => new RelayCommand<string>(DecrementCount);
-        public ICommand GenerateDocxCommand => new RelayCommand(HandleGenerateDocx);
-        public ICommand ExportPdfCommand => new RelayCommand(HandleExportPdf);
-        public ICommand ResetCommand => new RelayCommand(HandleReset);
-        public ICommand UndoCommand => new RelayCommand(HandleUndo);
 
+        [RelayCommand]
+        private void GenerateDocx() => HandleGenerateDocx();
+
+        [RelayCommand]
+        private void ExportPdf() => HandleExportPdf();
+
+        [RelayCommand]
+        private void Reset() => HandleReset();
+
+        [RelayCommand]
+        private void Undo() => HandleUndo();
+
+        [ObservableProperty]
         private bool _hasPatientInfo = true;
-        public bool HasPatientInfo
-        {
-            get => _hasPatientInfo;
-            set { _hasPatientInfo = value; OnPropertyChanged(); }
-        }
 
         public void HandleReset()
         {
@@ -232,6 +194,52 @@ namespace Chigen.App.ViewModels
             }
         }
 
+        private ReportDocument BuildReportDocument()
+        {
+            var letterhead = TemplateService.LoadLetterhead();
+            var template = TemplateService.LoadTemplate();
+            var specimen = new SpecimenInfo
+            {
+                Type = CurrentMode == CounterMode.PeripheralBlood
+                    ? TranslationService.GetString("SpecimenTypePeripheralBlood")
+                    : TranslationService.GetString("SpecimenTypeBoneMarrowAspirate")
+            };
+            var patient = new PatientInfo
+            {
+                Name = PatientName, Id = PatientId, DateOfBirth = PatientDob,
+                Sex = PatientSex, Diagnosis = PatientDiagnosis, Address = PatientAddress,
+                Physician = Physician, Ward = Ward, PaymentMethod = PaymentMethod,
+                Conclusion = Conclusion, Recommendations = Recommendations
+            };
+            return new ReportDocument(
+                _counterService.State, patient, specimen, letterhead, template,
+                reportTitle: TranslationService.GetString("ReportTitle"),
+                subtitle: TranslationService.GetString("CellDifferentialCount"),
+                patientInfoSectionLabel: TranslationService.GetString("PatientInfoSection"),
+                conclusionSectionLabel: TranslationService.GetString("ConclusionInterpretation"),
+                recommendationsSectionLabel: TranslationService.GetString("RecommendationsLabel"),
+                totalLabel: TranslationService.GetString("Total"),
+                noAbnormalitiesText: TranslationService.GetString("NoAbnormalities"),
+                generatedDateLabel: TranslationService.GetString("ReportGenerated"),
+                signatureLabel: TranslationService.GetString("PathologistSignature"),
+                colCellType: TranslationService.GetString("ColCellType"),
+                colCount: TranslationService.GetString("ColCount"),
+                colPercent: TranslationService.GetString("ColPercent"),
+                colRefRange: TranslationService.GetString("ColRefRange"),
+                labelPatientId: TranslationService.GetString("report_PatientId"),
+                labelPatientName: TranslationService.GetString("report_PatientName"),
+                labelDob: TranslationService.GetString("report_DateOfBirth"),
+                labelSex: TranslationService.GetString("report_Sex"),
+                labelDiagnosis: TranslationService.GetString("report_Diagnosis"),
+                labelAddress: TranslationService.GetString("report_Address"),
+                labelPhysician: TranslationService.GetString("report_Physician"),
+                labelWard: TranslationService.GetString("report_Ward"),
+                labelPaymentMethod: TranslationService.GetString("report_PaymentMethod"),
+                labelSpecimenType: TranslationService.GetString("report_Specimen"),
+                labelCollectionDate: TranslationService.GetString("report_CollectionDate"),
+                labelReceivedDate: TranslationService.GetString("report_Received"));
+        }
+
         public void HandleGenerateDocx()
         {
             try
@@ -245,30 +253,10 @@ namespace Chigen.App.ViewModels
 
                 if (saveDialog.ShowDialog() == true)
                 {
-                    var letterhead = TemplateService.LoadLetterhead();
-                    var template = TemplateService.LoadTemplate();
-                    if (template.ShowLetterhead && string.IsNullOrEmpty(letterhead.LogoPath))
+                    var doc = BuildReportDocument();
+                    if (doc.ShowLetterhead && !doc.HasLogo)
                         throw new InvalidOperationException(TranslationService.GetString("LetterheadLogoRequired"));
-                    var generator = new DocxGenerator(letterhead, template);
-                    var specimen = new SpecimenInfo
-                    {
-                        Type = CurrentMode == CounterMode.PeripheralBlood ? TranslationService.GetString("SpecimenTypePeripheralBlood") : TranslationService.GetString("SpecimenTypeBoneMarrowAspirate")
-                    };
-                    var patient = new PatientInfo
-                    {
-                        Name = PatientName,
-                        Id = PatientId,
-                        DateOfBirth = PatientDob,
-                        Sex = PatientSex,
-                        Diagnosis = PatientDiagnosis,
-                        Address = PatientAddress,
-                        Physician = Physician,
-                        Ward = Ward,
-                        PaymentMethod = PaymentMethod,
-                        Conclusion = Conclusion,
-                        Recommendations = Recommendations
-                    };
-                    generator.Create(saveDialog.FileName, _counterService.State, patient, specimen);
+                    new DocxGenerator(doc).Create(saveDialog.FileName);
                     StatusText = $"{TranslationService.GetString("StatusDocxSaved")}{saveDialog.FileName}";
                     MessageBox.Show(
                         $"{TranslationService.GetString("DocxSavedMsg")}{saveDialog.FileName}",
@@ -302,37 +290,13 @@ namespace Chigen.App.ViewModels
 
                 if (saveDialog.ShowDialog() == true)
                 {
-                    var letterhead = TemplateService.LoadLetterhead();
-                    var template = TemplateService.LoadTemplate();
-                    if (template.ShowLetterhead && string.IsNullOrEmpty(letterhead.LogoPath))
+                    var doc = BuildReportDocument();
+                    if (doc.ShowLetterhead && !doc.HasLogo)
                         throw new InvalidOperationException(TranslationService.GetString("LetterheadLogoRequired"));
-                    var specimen = new SpecimenInfo
-                    {
-                        Type = CurrentMode == CounterMode.PeripheralBlood ? TranslationService.GetString("SpecimenTypePeripheralBlood") : TranslationService.GetString("SpecimenTypeBoneMarrowAspirate")
-                    };
-                    var patient = new PatientInfo
-                    {
-                        Name = PatientName,
-                        Id = PatientId,
-                        DateOfBirth = PatientDob,
-                        Sex = PatientSex,
-                        Diagnosis = PatientDiagnosis,
-                        Address = PatientAddress,
-                        Physician = Physician,
-                        Ward = Ward,
-                        PaymentMethod = PaymentMethod,
-                        Conclusion = Conclusion,
-                        Recommendations = Recommendations
-                    };
-
-                    PdfConverter.Convert(saveDialog.FileName, _counterService.State, patient, specimen, letterhead, template, PdfMethod);
-
+                    new DirectPdfGenerator(doc).Create(saveDialog.FileName);
                     StatusText = $"{TranslationService.GetString("StatusPdfSaved")}{saveDialog.FileName}";
-                    string method = PdfMethod == PdfConversionMethod.WordInterop
-                        ? TranslationService.GetString("ViaWord")
-                        : TranslationService.GetString("DirectMethod");
                     MessageBox.Show(
-                        $"{TranslationService.GetString("PdfSavedMsg")}{saveDialog.FileName}{TranslationService.GetString("GeneratedVia")}{method})",
+                        $"{TranslationService.GetString("PdfSavedMsg")}{saveDialog.FileName}",
                         TranslationService.GetString("ExportComplete"),
                         MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -375,7 +339,8 @@ namespace Chigen.App.ViewModels
 
         public void RefreshTemplateSettings()
         {
-            // Re-read configs if needed (settings window already saves them)
+            OnPropertyChanged(nameof(CurrentThemeIcon));
+            OnPropertyChanged(nameof(CurrentThemeLabel));
         }
 
         private void ApplySavedHotkeys()
@@ -414,9 +379,9 @@ namespace Chigen.App.ViewModels
             }
         }
 
-        public Views.PatientInfo GetPatientInfo()
+        public Core.Models.PatientInfo GetPatientInfo()
         {
-            return new Views.PatientInfo
+            return new Core.Models.PatientInfo
             {
                 Name = PatientName,
                 Id = PatientId,
@@ -430,7 +395,7 @@ namespace Chigen.App.ViewModels
             };
         }
 
-        public void SetPatientInfo(Views.PatientInfo info)
+        public void SetPatientInfo(Core.Models.PatientInfo info)
         {
             PatientName = info.Name;
             PatientId = info.Id;
@@ -449,14 +414,5 @@ namespace Chigen.App.ViewModels
             CanUndo = _counterService.State.UndoStack.Count > 0;
             CanExport = TotalCount > 0;
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }
-
-

@@ -1,4 +1,4 @@
-using Chigen.DocumentExport;
+﻿using Chigen.Core.Services;
 
 namespace Chigen.Tests.DocumentExport
 {
@@ -10,7 +10,7 @@ namespace Chigen.Tests.DocumentExport
         [InlineData("9", "09")]
         public void NumericKey_ReturnsZeroPrefixed(string input, string expected)
         {
-            Assert.Equal(expected, DirectPdfGenerator.SortKey(input));
+            Assert.Equal(expected, CellSortHelper.SortKey(input));
         }
 
         [Theory]
@@ -19,26 +19,26 @@ namespace Chigen.Tests.DocumentExport
         [InlineData("Z", "1Z")]
         public void AlphaKey_ReturnsOnePrefixed(string input, string expected)
         {
-            Assert.Equal(expected, DirectPdfGenerator.SortKey(input));
+            Assert.Equal(expected, CellSortHelper.SortKey(input));
         }
 
         [Fact]
         public void EmptyKey_ReturnsZZ()
         {
-            Assert.Equal("ZZ", DirectPdfGenerator.SortKey(""));
+            Assert.Equal("ZZ", CellSortHelper.SortKey(""));
         }
 
         [Fact]
         public void NullKey_ReturnsZZ()
         {
-            Assert.Equal("ZZ", DirectPdfGenerator.SortKey(null!));
+            Assert.Equal("ZZ", CellSortHelper.SortKey(null!));
         }
 
         [Fact]
         public void NumericKeysSortBeforeAlphaKeys()
         {
-            var numeric = DirectPdfGenerator.SortKey("1");
-            var alpha = DirectPdfGenerator.SortKey("A");
+            var numeric = CellSortHelper.SortKey("1");
+            var alpha = CellSortHelper.SortKey("A");
             Assert.True(string.Compare(numeric, alpha, StringComparison.Ordinal) < 0);
         }
     }

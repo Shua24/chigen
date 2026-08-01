@@ -1,11 +1,10 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Chigen.Core.Models;
+﻿using Chigen.Core.Models;
 using Chigen.Core.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Chigen.App.ViewModels
 {
-    public class SettingsViewModel : INotifyPropertyChanged
+    public partial class SettingsViewModel : ObservableObject
     {
         private LetterheadConfig _config;
         private DocumentTemplate _template;
@@ -118,18 +117,35 @@ namespace Chigen.App.ViewModels
             set { _config.LogoPlacement = value; OnPropertyChanged(); }
         }
 
-        private string _selectedLanguage;
-        public string SelectedLanguage
+        [ObservableProperty]
+        private string _selectedLanguage = "en";
+
+        private string _selectedTheme = "Light";
+        public string SelectedTheme
         {
-            get => _selectedLanguage;
-            set { _selectedLanguage = value; OnPropertyChanged(); }
+            get => _selectedTheme;
+            set
+            {
+                if (_selectedTheme != value)
+                {
+                    _selectedTheme = value;
+                    OnPropertyChanged();
+                    App.SetTheme(value);
+                }
+            }
         }
+
+        public static List<KeyValuePair<string, string>> ThemeOptions { get; } =
+        [
+            new("Light", "Light"),
+            new("Dark", "Dark")
+        ];
 
         public List<KeyValuePair<string, LogoPlacement>> LogoPlacementOptions
         {
             get
             {
-                var t = Chigen.Core.Services.TranslationService.GetString;
+                var t = TranslationService.GetString;
                 return
                 [
                     new(t("LogoTop"), LogoPlacement.Top),
@@ -149,6 +165,7 @@ namespace Chigen.App.ViewModels
             _config = TemplateService.LoadLetterhead();
             _template = TemplateService.LoadTemplate();
             _selectedLanguage = TranslationService.CurrentLanguage;
+            _selectedTheme = TemplateService.LoadTheme();
             TranslationService.LanguageChanged += () =>
             {
                 OnPropertyChanged(nameof(LogoPlacementOptions));
@@ -160,6 +177,7 @@ namespace Chigen.App.ViewModels
             TemplateService.SaveLetterhead(_config);
             TemplateService.SaveTemplate(_template);
             TemplateService.SaveLanguage(SelectedLanguage);
+            TemplateService.SaveTheme(SelectedTheme);
         }
 
         public void BrowseLogo()
@@ -173,13 +191,6 @@ namespace Chigen.App.ViewModels
             {
                 LogoPath = dialog.FileName;
             }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

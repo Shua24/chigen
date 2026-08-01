@@ -119,6 +119,9 @@ namespace Chigen.Core.Services
             _en["Language"] = "Language:";
             _en["LogoTop"] = "Top (centered above text)";
             _en["LogoSide"] = "Side (aligned left of text)";
+            _en["Theme"] = "Theme:";
+            _en["ThemeLightMode"] = "Light mode";
+            _en["ThemeDarkMode"] = "Dark mode";
 
             // PatientInfoWindow
             _en["PatientInfoTitle"] = "Patient Information";
@@ -276,6 +279,9 @@ namespace Chigen.Core.Services
             _id["Language"] = "Bahasa:";
             _id["LogoTop"] = "Atas (terpusat di atas teks)";
             _id["LogoSide"] = "Samping (rata kiri teks)";
+            _id["Theme"] = "Tema:";
+            _id["ThemeLightMode"] = "Mode Terang";
+            _id["ThemeDarkMode"] = "Mode Gelap";
 
             // PatientInfoWindow
             _id["PatientInfoTitle"] = "Informasi Pasien";
@@ -357,3 +363,4 @@ namespace Chigen.Core.Services
         }
     }
 }
+
