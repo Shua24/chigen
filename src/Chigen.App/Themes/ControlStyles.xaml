@@ -154,6 +154,7 @@
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </ToggleButton>
                         <Popup x:Name="Popup"
+                               StaysOpen="False"
                                IsOpen="{TemplateBinding IsDropDownOpen}"
                                Placement="Bottom"
                                AllowsTransparency="True"
