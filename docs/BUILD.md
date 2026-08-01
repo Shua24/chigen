@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- **Windows** (7, 8, 10, or 11) -- required because the app is WPF-based
+- **Windows** (10 or 11) -- required because the app is WPF-based
 - **.NET 10 SDK** -- download from [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/10.0)
 - Optional: **Visual Studio 2022** (any edition) or **JetBrains Rider** for IDE support
 

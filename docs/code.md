@@ -222,10 +222,13 @@ Manages JSON configuration files stored in `%LOCALAPPDATA%\Chigen\`.
 | `LoadHotkeyMappings()`                  | Loads from `hotkeys.json` or builds defaults |
 | `SaveHotkeyMappings(List<...>)`         | Saves to `hotkeys.json`                 |
 
-**Config files:**
-- `letterhead.json` -- `LetterheadConfig`
-- `templates.json` -- `List<DocumentTemplate>`
-- `hotkeys.json` -- `List<HotkeyMappingEntry>`
+**Config file:**
+- `%LOCALAPPDATA%\Chigen\config.json` -- `AppConfigV1` structure containing:
+  - `Letterhead` (LetterheadConfig): Institution letterhead settings
+  - `Template` (DocumentTemplate): Document template settings
+  - `Hotkeys` (List<HotkeyMappingEntry>): Keyboard hotkey mappings
+  - `Language` (string): UI language code (default: "en")
+  - `Theme` (string): UI theme name (default: "Light")
 
 **Error handling:** Returns defaults for missing or corrupt files.
 

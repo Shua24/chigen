@@ -9,6 +9,7 @@ namespace Chigen.App.ViewModels
         public string Group { get; set; } = string.Empty;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(KeyDisplay))]
         private string _key = "";
 
         public string KeyDisplay => string.IsNullOrEmpty(Key) ? "-" : Key;

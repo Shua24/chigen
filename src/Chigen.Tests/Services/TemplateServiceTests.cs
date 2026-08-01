@@ -5,17 +5,19 @@ namespace Chigen.Tests.Services
 {
     public class TemplateServiceTests : IDisposable
     {
-        private static readonly string ConfigFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Chigen");
-
-        private static readonly string ConfigPath = Path.Combine(ConfigFolder, "config.json");
+        private readonly string _testConfigFolder;
+        private readonly string _configPath;
 
         public TemplateServiceTests()
         {
-            Directory.CreateDirectory(ConfigFolder);
-            // Start each test with no config file
-            if (File.Exists(ConfigPath)) File.Delete(ConfigPath);
+            // Create a unique temp directory for each test run
+            _testConfigFolder = Path.Combine(Path.GetTempPath(), $"ChigenTests_{Guid.NewGuid():N}");
+            _configPath = Path.Combine(_testConfigFolder, "config.json");
+
+            // Set the override so TemplateService uses our test directory
+            TemplateService.TestConfigFolderOverride = _testConfigFolder;
+
+            Directory.CreateDirectory(_testConfigFolder);
         }
 
         [Fact]
@@ -136,7 +138,7 @@ namespace Chigen.Tests.Services
         [Fact]
         public void LoadConfig_ReturnsDefault_WhenFileCorrupt()
         {
-            File.WriteAllText(ConfigPath, "not valid json");
+            File.WriteAllText(_configPath, "not valid json");
 
             var config = TemplateService.LoadLetterhead();
             Assert.Equal("My Hospital", config.InstitutionName);
@@ -148,16 +150,21 @@ namespace Chigen.Tests.Services
             var t = new DocumentTemplate { Name = "NewTemplate" };
             TemplateService.SaveTemplate(t);
 
-            Assert.True(File.Exists(ConfigPath));
+            Assert.True(File.Exists(_configPath));
             var loaded = TemplateService.LoadTemplate("NewTemplate");
             Assert.Equal("NewTemplate", loaded.Name);
         }
 
         public void Dispose()
         {
+            // Clear the override
+            TemplateService.TestConfigFolderOverride = null;
+
+            // Delete the entire test directory
             try
             {
-                if (File.Exists(ConfigPath)) File.Delete(ConfigPath);
+                if (Directory.Exists(_testConfigFolder))
+                    Directory.Delete(_testConfigFolder, recursive: true);
             }
             catch { }
         }

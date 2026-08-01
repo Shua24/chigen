@@ -130,7 +130,7 @@
                                 <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <TextBlock Grid.Column="3" Text="{Binding Percent, StringFormat={}{0:F1}%}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource SecondaryTextBrush}"
+                                <TextBlock Grid.Column="3" Text="{Binding Percentage, StringFormat={}{0:F1}%}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource SecondaryTextBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                                 <TextBlock Grid.Column="4" Text="{Binding CellType.ReferenceRange}" FontSize="12" Foreground="{DynamicResource MutedTextBrush}"

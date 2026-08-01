@@ -80,7 +80,7 @@ Before you install this app, the contributor(s) of this project would like to le
 
 ## What you need to run it
 
-- A **Windows computer** (7, 8, 10, or 11)
+- A **Windows computer** (10 or 11)
 - For PDFs via Word: **Microsoft Word** installed (any recent version). If Word isn't available, Chigen switches to a built-in PDF generator automatically -- no extra software needed.
 
 ---

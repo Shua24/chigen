@@ -173,7 +173,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger SourceName="ToggleButton" Property="IsMouseOver" Value="True">
-                            <Setter TargetName="ToggleButton" Property="Foreground" Value="Black"/>
+                            <Setter TargetName="ToggleButton" Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

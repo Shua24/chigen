@@ -1,5 +1,6 @@
 ﻿using PdfSharp.Pdf;
 using PdfSharp.Drawing;
+using PdfSharp.Drawing.Layout;
 using Chigen.Core.Models;
 
 namespace Chigen.DocumentExport;
@@ -18,6 +19,17 @@ public class DirectPdfGenerator
     private readonly XFont LetterheadTitleFont = new("Calibri", 12, XFontStyleEx.Bold);
     private readonly XFont LetterheadSubtitleFont = new("Calibri", 10, XFontStyleEx.Regular);
 
+    private const double PageTopMargin = 20;
+    private const double PageBottomMargin = 60;
+    private const double PageLeftMargin = 20;
+    private const double PageRightMargin = 20;
+
+    private PdfDocument? _currentDocument;
+    private PdfPage? _currentPage;
+    private XGraphics? _currentGraphics;
+    private double _pageWidth;
+    private double _pageHeight;
+
     public DirectPdfGenerator(ReportDocument doc) => _doc = doc;
 
     public string Create(string outputPath)
@@ -26,20 +38,37 @@ public class DirectPdfGenerator
         doc.Info.Title = _doc.ReportTitle;
         doc.Info.Author = _doc.InstitutionName;
 
-        var page = doc.AddPage();
-        using var gfx = XGraphics.FromPdfPage(page);
+        _currentDocument = doc;
+        _currentPage = doc.AddPage();
+        _pageWidth = _currentPage.Width;
+        _pageHeight = _currentPage.Height;
+        _currentGraphics = XGraphics.FromPdfPage(_currentPage);
 
-        double y = 20;
-        y = DrawLetterhead(gfx, y);
-        y = DrawReportTitle(gfx, y);
-        y = DrawPatientInfo(gfx, y);
-        y = DrawDifferentialTable(gfx, y);
-        y = DrawConclusion(gfx, y);
-        y = DrawRecommendations(gfx, y);
-        DrawFooter(gfx, y);
+        double y = PageTopMargin;
+        y = DrawLetterhead(_currentGraphics, y);
+        y = DrawReportTitle(_currentGraphics, y);
+        y = DrawPatientInfo(_currentGraphics, y);
+        y = DrawDifferentialTable(_currentGraphics, y);
+        y = DrawConclusion(_currentGraphics, y);
+        y = DrawRecommendations(_currentGraphics, y);
+        DrawFooter(_currentGraphics, y);
 
+        _currentGraphics.Dispose();
         doc.Save(outputPath);
         return outputPath;
+    }
+
+    private void EnsureSpace(ref XGraphics gfx, ref double y, double requiredHeight)
+    {
+        if (y + requiredHeight > _pageHeight - PageBottomMargin)
+        {
+            // Start a new page
+            gfx.Dispose();
+            _currentPage = _currentDocument!.AddPage();
+            gfx = XGraphics.FromPdfPage(_currentPage);
+            _currentGraphics = gfx;
+            y = PageTopMargin;
+        }
     }
 
     private double DrawLetterhead(XGraphics gfx, double y)
@@ -218,6 +247,8 @@ public class DirectPdfGenerator
         double cx = tableLeft;
         for (int i = 0; i < colCount; i++) { colX[i] = cx; cx += colWidths[i]; }
 
+        // Draw header row
+        EnsureSpace(ref gfx, ref y, rowH);
         gfx.DrawRectangle(XBrushes.LightSteelBlue, tableLeft, y, tableW, rowH);
         for (int i = 0; i < colCount; i++)
         {
@@ -227,8 +258,10 @@ public class DirectPdfGenerator
         }
         y += rowH;
 
+        // Draw data rows
         foreach (var row in _doc.Rows)
         {
+            EnsureSpace(ref gfx, ref y, rowH);
             gfx.DrawRectangle(XPens.LightGray, XBrushes.White, tableLeft, y, tableW, rowH);
             gfx.DrawString(row.CellName, TableFont, XBrushes.Black,
                 new XRect(colX[0] + 4, y, colWidths[0] - 4, rowH), XStringFormats.CenterLeft);
@@ -243,6 +276,8 @@ public class DirectPdfGenerator
             y += rowH;
         }
 
+        // Draw total row
+        EnsureSpace(ref gfx, ref y, rowH);
         gfx.DrawRectangle(new XPen(XColors.Black, 2), XBrushes.LightSteelBlue, tableLeft, y, tableW, rowH);
         gfx.DrawString(_doc.TotalLabel, TableHeaderFont, XBrushes.Black,
             new XRect(colX[0] + 4, y, colWidths[0] - 4, rowH), XStringFormats.CenterLeft);
@@ -257,32 +292,64 @@ public class DirectPdfGenerator
     private double DrawConclusion(XGraphics gfx, double y)
     {
         if (!_doc.ShowConclusion) return y;
+
+        // Measure wrapped text height
+        var textFormatter = new XTextFormatter(gfx);
+        var availableWidth = gfx.PageSize.Width - 40;
+        var measureRect = new XRect(20, 0, availableWidth, double.MaxValue);
+        var textSize = gfx.MeasureString(_doc.ConclusionText, TableFont);
+        var estimatedLines = Math.Ceiling(textSize.Width / availableWidth);
+        var wrappedHeight = estimatedLines * (TableFont.Height + 2);
+        var requiredHeight = 14 + wrappedHeight + 14;
+
+        EnsureSpace(ref gfx, ref y, requiredHeight);
+
         y += 2;
         gfx.DrawString(_doc.ConclusionSectionLabel, TableHeaderFont, XBrushes.Black,
-            new XRect(20, y, gfx.PageSize.Width - 40, 14), XStringFormats.TopLeft);
+            new XRect(20, y, availableWidth, 14), XStringFormats.TopLeft);
         y += 14;
-        gfx.DrawString(_doc.ConclusionText, TableFont, XBrushes.Black,
-            new XRect(20, y, gfx.PageSize.Width - 40, 12), XStringFormats.TopLeft);
-        y += 14;
+
+        var textRect = new XRect(20, y, availableWidth, wrappedHeight);
+        textFormatter.DrawString(_doc.ConclusionText, TableFont, XBrushes.Black, textRect, XStringFormats.TopLeft);
+        y += wrappedHeight + 4;
+
         return y;
     }
 
     private double DrawRecommendations(XGraphics gfx, double y)
     {
         if (!_doc.ShowRecommendations) return y;
+
+        // Measure wrapped text height
+        var textFormatter = new XTextFormatter(gfx);
+        var availableWidth = gfx.PageSize.Width - 40;
+        var measureRect = new XRect(20, 0, availableWidth, double.MaxValue);
+        var textSize = gfx.MeasureString(_doc.RecommendationsText, TableFont);
+        var estimatedLines = Math.Ceiling(textSize.Width / availableWidth);
+        var wrappedHeight = estimatedLines * (TableFont.Height + 2);
+        var requiredHeight = 14 + wrappedHeight + 14;
+
+        EnsureSpace(ref gfx, ref y, requiredHeight);
+
         y += 2;
         gfx.DrawString(_doc.RecommendationsSectionLabel, TableHeaderFont, XBrushes.Black,
-            new XRect(20, y, gfx.PageSize.Width - 40, 14), XStringFormats.TopLeft);
+            new XRect(20, y, availableWidth, 14), XStringFormats.TopLeft);
         y += 14;
-        gfx.DrawString(_doc.RecommendationsText, TableFont, XBrushes.Black,
-            new XRect(20, y, gfx.PageSize.Width - 40, 12), XStringFormats.TopLeft);
-        y += 14;
+
+        var textRect = new XRect(20, y, availableWidth, wrappedHeight);
+        textFormatter.DrawString(_doc.RecommendationsText, TableFont, XBrushes.Black, textRect, XStringFormats.TopLeft);
+        y += wrappedHeight + 4;
+
         return y;
     }
 
     private void DrawFooter(XGraphics gfx, double y)
     {
         if (!_doc.ShowFooter) return;
+
+        var footerHeight = 6 + 4 + 10 + 10 + 4 + 12 + 10;
+        EnsureSpace(ref gfx, ref y, footerHeight);
+
         y += 6;
         gfx.DrawLine(XPens.Black, 20, y, gfx.PageSize.Width - 20, y);
         y += 4;

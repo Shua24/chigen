@@ -14,11 +14,15 @@ namespace Chigen.Core.Services
 
     public class TemplateService
     {
-        private static readonly string ConfigFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Chigen");
+        // Allow tests to override the config directory
+        internal static string? TestConfigFolderOverride { get; set; }
 
-        private static readonly string ConfigPath = Path.Combine(ConfigFolder, "config.json");
+        private static string ConfigFolder =>
+            TestConfigFolderOverride ?? Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Chigen");
+
+        private static string ConfigPath => Path.Combine(ConfigFolder, "config.json");
 
         static TemplateService()
         {
@@ -32,17 +36,96 @@ namespace Chigen.Core.Services
                 try
                 {
                     var json = File.ReadAllText(ConfigPath);
-                    return JsonSerializer.Deserialize<AppConfigV1>(json) ?? new AppConfigV1();
+                    var cfg = JsonSerializer.Deserialize<AppConfigV1>(json);
+                    if (cfg != null)
+                    {
+                        cfg.Hotkeys ??= [];
+                        return cfg;
+                    }
                 }
                 catch { }
             }
-            return new AppConfigV1();
+
+            // Migrate from legacy files if they exist
+            var config = new AppConfigV1();
+            bool hasLegacyData = false;
+
+            var legacyLetterheadPath = Path.Combine(ConfigFolder, "letterhead.json");
+            if (File.Exists(legacyLetterheadPath))
+            {
+                try
+                {
+                    var json = File.ReadAllText(legacyLetterheadPath);
+                    var letterhead = JsonSerializer.Deserialize<LetterheadConfig>(json);
+                    if (letterhead != null)
+                    {
+                        config.Letterhead = letterhead;
+                        hasLegacyData = true;
+                    }
+                }
+                catch { }
+            }
+
+            var legacyTemplatesPath = Path.Combine(ConfigFolder, "templates.json");
+            if (File.Exists(legacyTemplatesPath))
+            {
+                try
+                {
+                    var json = File.ReadAllText(legacyTemplatesPath);
+                    var templates = JsonSerializer.Deserialize<List<DocumentTemplate>>(json);
+                    if (templates != null && templates.Count > 0)
+                    {
+                        config.Template = templates[0];
+                        hasLegacyData = true;
+                    }
+                }
+                catch { }
+            }
+
+            var legacyHotkeysPath = Path.Combine(ConfigFolder, "hotkeys.json");
+            if (File.Exists(legacyHotkeysPath))
+            {
+                try
+                {
+                    var json = File.ReadAllText(legacyHotkeysPath);
+                    var hotkeys = JsonSerializer.Deserialize<List<HotkeyMappingEntry>>(json);
+                    if (hotkeys != null && hotkeys.Count > 0)
+                    {
+                        config.Hotkeys = hotkeys;
+                        hasLegacyData = true;
+                    }
+                }
+                catch { }
+            }
+
+            // Persist migrated config
+            if (hasLegacyData)
+            {
+                SaveConfig(config);
+            }
+
+            config.Hotkeys ??= [];
+            return config;
         }
 
         private static void SaveConfig(AppConfigV1 config)
         {
             var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(ConfigPath, json);
+            var tempPath = Path.Combine(ConfigFolder, $"config.tmp.{Guid.NewGuid():N}");
+
+            try
+            {
+                File.WriteAllText(tempPath, json);
+                File.Move(tempPath, ConfigPath, overwrite: true);
+            }
+            catch
+            {
+                if (File.Exists(tempPath))
+                {
+                    try { File.Delete(tempPath); } catch { }
+                }
+                throw;
+            }
         }
 
         public static LetterheadConfig LoadLetterhead() => LoadConfig().Letterhead;
