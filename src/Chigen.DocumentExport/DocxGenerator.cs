@@ -343,10 +343,15 @@ public class DocxGenerator
                 Before = spacingBefore?.ToString(),
                 After = spacingAfter?.ToString()
             });
-        if (topBorderSize > 0)
-            paraProps.Append(new ParagraphBorders(new TopBorder { Val = BorderValues.Single, Size = (uint)topBorderSize, Space = 1 }));
-        if (bottomBorderSize > 0)
-            paraProps.Append(new ParagraphBorders(new BottomBorder { Val = BorderValues.Single, Size = (uint)bottomBorderSize, Space = 1 }));
+        if (topBorderSize > 0 || bottomBorderSize > 0)
+        {
+            var paragraphBorders = new ParagraphBorders();
+            if (topBorderSize > 0)
+                paragraphBorders.Append(new TopBorder { Val = BorderValues.Single, Size = (uint)topBorderSize, Space = 1 });
+            if (bottomBorderSize > 0)
+                paragraphBorders.Append(new BottomBorder { Val = BorderValues.Single, Size = (uint)bottomBorderSize, Space = 1 });
+            paraProps.Append(paragraphBorders);
+        }
 
         var run = string.IsNullOrEmpty(text) ? null : new Run(runProps, new Text(text) { Space = SpaceProcessingModeValues.Preserve });
 
@@ -410,12 +415,13 @@ public class DocxGenerator
         return ext switch
         {
             ".png" => ImagePartType.Png,
+            ".jpg" or ".jpeg" => ImagePartType.Jpeg,
             ".gif" => ImagePartType.Gif,
             ".bmp" => ImagePartType.Bmp,
             ".tiff" or ".tif" => ImagePartType.Tiff,
             ".ico" => ImagePartType.Icon,
             ".svg" => ImagePartType.Svg,
-            _ => ImagePartType.Jpeg,
+            _ => throw new InvalidOperationException($"Failed to load letterhead logo from '{path}': Unsupported image format '{ext}'."),
         };
     }
 }

@@ -27,15 +27,19 @@ internal static class ImageMetrics
     /// </summary>
     public static ScaledImage LoadScaled(string path, double maxWidth, double maxHeight, bool clampAtOriginalSize = false)
     {
+        XImage? image = null;
         try
         {
-            var image = XImage.FromFile(path);
+            image = XImage.FromFile(path);
             double scale = Math.Min(maxWidth / image.PointWidth, maxHeight / image.PointHeight);
             if (clampAtOriginalSize && scale > 1) scale = 1;
-            return new ScaledImage(image, image.PointWidth * scale, image.PointHeight * scale);
+            var result = new ScaledImage(image, image.PointWidth * scale, image.PointHeight * scale);
+            image = null; // Transfer ownership to ScaledImage
+            return result;
         }
         catch (Exception ex)
         {
+            image?.Dispose();
             throw new InvalidOperationException(
                 $"Failed to load letterhead logo from '{path}': {ex.Message}", ex);
         }

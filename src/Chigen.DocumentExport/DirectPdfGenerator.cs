@@ -80,7 +80,7 @@ public class DirectPdfGenerator
 
         if (!string.IsNullOrEmpty(_doc.AddressLine))
         {
-            cursor.WriteLeft(_doc.AddressLine, SmallFont, XBrushes.Gray, 12);
+            cursor.WriteCentered(_doc.AddressLine, SmallFont, XBrushes.Gray, 12);
             cursor.DrawHLine(new XPen(XColors.Black, 3), cursor.Y - 1);
             cursor.Advance(GapSmall);
         }
@@ -237,9 +237,44 @@ public class DirectPdfGenerator
     private void DrawTextSection(PdfPageCursor cursor, string sectionLabel, string text)
     {
         var availableWidth = cursor.ContentWidth;
-        var textSize = cursor.Graphics.MeasureString(text, TableFont);
-        var estimatedLines = Math.Ceiling(textSize.Width / availableWidth);
-        var wrappedHeight = estimatedLines * (TableFont.Height + 2);
+
+        // Calculate actual wrapped height by simulating XTextFormatter's line-breaking behavior
+        var lines = new List<string>();
+        var paragraphs = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+        foreach (var paragraph in paragraphs)
+        {
+            if (string.IsNullOrEmpty(paragraph))
+            {
+                lines.Add("");
+                continue;
+            }
+
+            var words = paragraph.Split(new[] { ' ' }, StringSplitOptions.None);
+            var currentLine = "";
+
+            foreach (var word in words)
+            {
+                var testLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
+                var testWidth = cursor.Graphics.MeasureString(testLine, TableFont).Width;
+
+                if (testWidth > availableWidth && !string.IsNullOrEmpty(currentLine))
+                {
+                    lines.Add(currentLine);
+                    currentLine = word;
+                }
+                else
+                {
+                    currentLine = testLine;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(currentLine))
+                lines.Add(currentLine);
+        }
+
+        var lineCount = Math.Max(1, lines.Count);
+        var wrappedHeight = lineCount * TableFont.Height;
         var requiredHeight = SectionHeaderHeight + wrappedHeight + SectionHeaderHeight;
 
         cursor.EnsureSpace(requiredHeight);
