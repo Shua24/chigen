@@ -10,7 +10,7 @@ This document summarizes the most important points for people interested in the 
 >
 > This disclosure rule does not apply if a **human** contributor is fully in the loop, where one reviews the code, and generates the commit messages and pull request by hand, along with a rationale on the pull request.
 >
-> Test-driven development contributions are allowed and are also exempt from the disclosure rule as well since it satisfies the "human in the loop" requirement.
+> Test-driven development contributions with a human in the loop are allowed and are also exempt from the disclosure rule as well.
 
 ## Contents
 
